@@ -1,4 +1,4 @@
-## MEWwalletKit
+## mew-wallet-ios-kit
 
 ## Requirements
 Good mood
@@ -13,7 +13,7 @@ Good mood
 You can use [Swift Package Manager](https://swift.org/package-manager/) and specify dependency in `Package.swift` by adding this:
 
 ```swift
-.package(url: "https://github.com/MyEtherWallet/mew-wallet-ios-kit.git", .upToNextMajor(from: "1.4.14"))
+.package(url: "https://github.com/mewwallet/mew-wallet-ios-kit.git", .upToNextMajor(from: "1.4.17"))
 ```
 
 ### License
