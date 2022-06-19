@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension String {
+public extension String {
   func eip55() -> String? {
     guard self.isHex() else {
       return nil

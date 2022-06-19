@@ -155,7 +155,7 @@ public extension TypedMessage {
 public func signTypedMessage(privateKey: PrivateKeyEth1, payload: SignedMessagePayload, version: SignTypedDataVersion = .v3) throws -> String {
     let message = try hash(message: payload.data, version: version)
     
-    guard let signed = message.sign(key: privateKey, leadingV: false) else {
+    guard let signed = message.unsafeSign(key: privateKey.data(), leadingV: false) else {
         throw TypedMessageSignError.unknown("Failed to sign the message")
     }
     

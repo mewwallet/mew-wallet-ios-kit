@@ -8,7 +8,7 @@
 
 import Foundation
 import CryptoSwift
-import MEW_wallet_iOS_secp256k1_package
+import mew_wallet_ios_secp256k1
 import BigInt
 
 private let HMACKeyData: [UInt8] = [0x42, 0x69, 0x74, 0x63, 0x6F, 0x69, 0x6E, 0x20, 0x73, 0x65, 0x65, 0x64] // "Bitcoin seed"
