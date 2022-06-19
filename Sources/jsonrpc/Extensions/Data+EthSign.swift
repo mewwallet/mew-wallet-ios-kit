@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import MEW_wallet_iOS_secp256k1_package
+import mew_wallet_ios_secp256k1
 
 private let ethSignPrefix = "\u{19}Ethereum Signed Message:\n"
 
@@ -24,7 +24,7 @@ public extension Data {
   }
   
   func sign(key: PrivateKeyEth1, leadingV: Bool) -> Data? {
-    self.sign(key: key.data(), leadingV: leadingV)
+    self.hashPersonalMessage()?.unsafeSign(key: key.data(), leadingV: leadingV)
   }
     
   /// Recovers address from a hashed message (self) with provided signature.
@@ -50,22 +50,26 @@ public extension Data {
   }
 }
 
-internal extension Data {
+public extension Data {
+  
+  @available(*, deprecated, renamed: "unsafeSign(key:leadingV:)")
   func sign(key: Data, leadingV: Bool) -> Data? {
-    var dataToSign: Data
-    if self.count != 32 {
-      guard let hash = self.hashPersonalMessage() else {
-        return nil
-      }
-      dataToSign = hash
-    } else {
-      dataToSign = self
-    }
+    return self.unsafeSign(key: key, leadingV: leadingV)
+  }
+  
+  /// Signs data with provided key
+  /// Please pay attention when using this method. It's possible to accidently sign phishing data, f.e. transaction that will drain tokens.
+  /// In case if you need to sign personal message or transaction - use other methods
+  /// - Parameters:
+  ///   - key: PrivateKey to sign data
+  ///   - leadingV: controls order of signature: VRS or RSV
+  /// - Returns: result signature
+  func unsafeSign(key: Data, leadingV: Bool) -> Data? {
     guard let context = secp256k1_context_create(UInt32(SECP256K1_CONTEXT_SIGN)) else {
       return nil
     }
     defer { secp256k1_context_destroy(context) }
-    guard var recoverableSignature = dataToSign.secp256k1RecoverableSign(privateKey: key, context: context) else {
+    guard var recoverableSignature = self.secp256k1RecoverableSign(privateKey: key, context: context) else {
       return nil
     }
     guard let serializedRecoverableSignature = recoverableSignature.serialized(context: context) else {

@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import MEW_wallet_iOS_secp256k1_package
+import mew_wallet_ios_secp256k1
 
 enum SECP256k1PubkeyError: Error {
   case invalidPrivateKey

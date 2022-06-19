@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import MEWwalletTweetNacl
+import mew_wallet_ios_tweetnacl
 import CryptoSwift
 
 public struct EthEncryptedData: Codable {

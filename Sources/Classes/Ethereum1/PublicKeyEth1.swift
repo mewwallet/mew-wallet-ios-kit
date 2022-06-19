@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import MEW_wallet_iOS_secp256k1_package
+import mew_wallet_ios_secp256k1
 
 private struct PublicKeyEth1Constants {
   static let compressedKeySize = 33
