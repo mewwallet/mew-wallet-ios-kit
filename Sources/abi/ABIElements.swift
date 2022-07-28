@@ -80,6 +80,14 @@ public extension ABI {
         self.name = name
         self.type = type
       }
+      
+      public init?(name: InOutName, type: String) {
+        self.name = name
+        guard let type = ParameterType(from: type) else {
+          return nil
+        }
+        self.type = type
+      }
     }
     
     public struct Function: Equatable {

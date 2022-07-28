@@ -21,14 +21,14 @@ extension ABI.Element {
         case string
         indirect case tuple(types: [ParameterType])
       
-      var isNumber: Bool {
-        switch self {
-        case .int, .uint:
-          return true
-        default:
-          return false
+        var isNumber: Bool {
+          switch self {
+          case .int, .uint:
+            return true
+          default:
+            return false
+          }
         }
-      }
         
         var isStatic: Bool {
             switch self {
@@ -143,6 +143,23 @@ extension ABI.Element {
             default:
                 return ArraySize.notArray
             }
+        }
+      
+        init?(from string: String) {
+          switch string.lowercased() {
+          case "address":
+            self = .address
+          case "uint":
+            self = .uint(bits: 256)
+          case "string":
+            self = .string
+          case "bool":
+            self = .bool
+          case "int":
+            self = .int(bits: 256)
+          default:
+            return nil
+          }
         }
     }
 }
