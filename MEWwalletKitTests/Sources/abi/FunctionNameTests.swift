@@ -68,7 +68,7 @@ final class FunctionNameTests: QuickSpec {
   
   private lazy var testVectors: [TestVector] = [
     .init(
-      input: "function transfer(address to, uint value) external returns (bool)",
+      input: "override function transfer(address to, uint value) external returns (bool)",
       function: .erc20transfer
     )
   ]
