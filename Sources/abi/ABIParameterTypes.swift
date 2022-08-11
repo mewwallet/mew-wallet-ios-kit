@@ -185,6 +185,8 @@ extension ABI.Element.ParameterType: Equatable {
             return true
         case (.string, .string):
             return true
+        case let (.tuple(types1), .tuple(types2)):
+            return types1 == types2
         default:
             return false
         }
