@@ -16,6 +16,7 @@ enum TransactionError: Error {
 public enum EIPTransactionType: String {
   case eip2930 = "0x01"
   case eip1559 = "0x02"
+  case eip712 = "0x71"
   case legacy = "0x"
 
   var data: Data { Data(hex: rawValue) }
