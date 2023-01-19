@@ -53,6 +53,8 @@ public enum Network {
   case kovan
   case goerli
   case eth2Withdrawal
+  case zkSyncAlphaTestnet
+  case zkSyncMainnet
   
   case none
   case custom(name: String, path: String, pathProvider: NetworkPathProvider?, chainID: UInt32)
@@ -134,6 +136,8 @@ public enum Network {
     case .kovan:                                                              return "Kovan"
     case .goerli:                                                             return "Goerli"
     case .eth2Withdrawal:                                                     return "Eth 2.0"
+    case .zkSyncAlphaTestnet:                                                 return "zkSync alpha testnet"
+    case .zkSyncMainnet:                                                      return "zkSync"
     case .none:                                                               return ""
     case let .custom(name, _, _, _):                                          return name
     }
@@ -201,7 +205,7 @@ public enum Network {
     case .expanse:                                              return "m/44'/40'/0'/0"
     case .ledgerLiveEthereum, .keepkeyEthereum:                 return "m/44'/60'"
     case .ledgerEthereum:                                       return "m/44'/60'/0"
-    case .ethereum:                                             return "m/44'/60'/0'/0"
+    case .ethereum, .zkSyncMainnet, .zkSyncAlphaTestnet:        return "m/44'/60'/0'/0"
     case .ledgerEthereumClassic:                                return "m/44'/60'/160720'/0"
     case .ledgerEthereumClassicVintage:                         return "m/44'/60'/160720'/0'"
     case .ledgerLiveEthereumClassic, .keepkeyEthereumClassic:   return "m/44'/61'"
@@ -271,6 +275,8 @@ public enum Network {
     case .kovan:                                                return 42
     case .goerli:                                               return 5
     case .eth2Withdrawal:                                       return 3660
+    case .zkSyncAlphaTestnet:                                   return 280
+    case .zkSyncMainnet:                                        return 324
     case .none:                                                 return 0
     case let .custom(_, _, _, chainID):                         return chainID
     }
@@ -295,7 +301,8 @@ public enum Network {
   var addressPrefix: String {
     switch self {
     case .bitcoin:                                            return ""
-    case .ethereum, .ropsten, .anonymizedId, .kovan, .goerli: return "0x"
+    case .ethereum, .ropsten, .anonymizedId, .kovan, .goerli,
+        .zkSyncAlphaTestnet, .zkSyncMainnet:                  return "0x"
     case .none:                                               return ""
     default:                                                  return "0x"
     }
@@ -327,7 +334,8 @@ public enum Network {
   var publicKeyCompressed: Bool {
     switch self {
     case .bitcoin, .litecoin:                                 return true
-    case .ethereum, .ropsten, .anonymizedId, .kovan, .goerli: return false
+    case .ethereum, .ropsten, .anonymizedId, .kovan, .goerli,
+        .zkSyncMainnet, .zkSyncAlphaTestnet:                  return false
     default:                                                  return false
     }
   }

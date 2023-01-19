@@ -259,4 +259,3 @@ public final class EIP1559Transaction: Transaction {
     return fields
   }
 }
-
