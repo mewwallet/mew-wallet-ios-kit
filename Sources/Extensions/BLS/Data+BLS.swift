@@ -6,11 +6,12 @@
 //  Copyright © 2020 MyEtherWallet Inc. All rights reserved.
 //
 
+#if os(iOS) || os(macOS)
+
 import Foundation
-import bls_framework
 import CryptoSwift
 import BigInt
-
+import bls_framework
 // "BLS-SIG-KEYGEN-SALT-"
 private let HKDFMODR_SALT: [UInt8] = [0x42, 0x4c, 0x53, 0x2d, 0x53, 0x49, 0x47, 0x2d, 0x4b, 0x45, 0x59, 0x47, 0x45, 0x4e, 0x2d, 0x53, 0x41, 0x4c, 0x54, 0x2d]
 
@@ -55,3 +56,5 @@ extension Data {
     return result
   }
 }
+
+#endif

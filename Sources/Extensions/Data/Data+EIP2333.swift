@@ -6,6 +6,8 @@
 //  Copyright © 2020 MyEtherWallet Inc. All rights reserved.
 //
 
+#if os(iOS) || os(macOS)
+
 import Foundation
 import CryptoSwift
 import BigInt
@@ -60,3 +62,5 @@ extension Data {
     return okm.chunked(into: LAMPORT_CHUNK_SIZE).map({Data($0)})
   }
 }
+
+#endif

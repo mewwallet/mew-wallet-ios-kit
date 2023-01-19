@@ -6,6 +6,8 @@
 //  Copyright © 2020 MyEtherWallet Inc. All rights reserved.
 //
 
+#if os(iOS) || os(macOS)
+
 import Foundation
 
 public struct PublicKeyEth2: PublicKey {
@@ -37,3 +39,5 @@ extension PublicKeyEth2: Key {
     return nil
   }
 }
+
+#endif
