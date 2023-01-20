@@ -22,19 +22,19 @@ enum TransactionSignError: Error {
 
 extension Transaction {
   public func sign(key: PrivateKeyEth1, extraEntropy: Bool = false) throws {
+    if self.chainID == nil {
+      self.chainID = BigInt(key.network.chainID)
+    }
     switch self.eipType {
     case .eip712:
       guard let tx = self as? ZKSync.EIP712Transaction else {
         throw TransactionSignError.badTransaction
       }
-      let message = tx._eip712Message
+      let message = try tx._eip712Message
       let payload = SignedMessagePayload(data: message, signature: nil)
       let signature = try signTypedMessage(privateKey: key, payload: payload, version: message.version)
       tx.meta.customSignature = Data(hex: signature)
     default:
-      if self.chainID == nil {
-        self.chainID = BigInt(key.network.chainID)
-      }
       guard let context = secp256k1_context_create(UInt32(SECP256K1_CONTEXT_SIGN|SECP256K1_CONTEXT_VERIFY)) else { throw TransactionSignError.internalError }
       defer { secp256k1_context_destroy(context) }
       guard let chainID = self.chainID else { throw TransactionSignError.invalidChainId }
