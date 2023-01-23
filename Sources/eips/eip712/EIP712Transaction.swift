@@ -9,7 +9,7 @@ import Foundation
 import BigInt
 
 public struct ZKSync {
-  public struct EIP712Message {
+  struct EIP712Message {
     static func domain(with chainId: Int?) -> TypedMessageDomain {
       return TypedMessageDomain(name: "zkSync",
                                 version: "2",
@@ -114,27 +114,30 @@ public struct ZKSync {
     public var meta: Meta
     
     internal var _eip712Message: TypedMessage {
-      let input: [[String: AnyObject]] = [[
-        "txType": Int(self.eipType.rawValue.stringRemoveHexPrefix(), radix: 16) as AnyObject,
-        "from": (from?.address ?? "") as AnyObject,
-        "to": (to?.address ?? "") as AnyObject,
-        "ergsLimit": _ergsLimit as AnyObject,
-        "ergsPerPubdataByteLimit": meta.ergsPerPubdata as AnyObject,
-        "maxFeePerErg": _maxFeePerErg as AnyObject,
-        "maxPriorityFeePerErg": _maxPriorityFeePerErg as AnyObject,
-        "paymaster": (meta.paymaster?.paymaster.address ?? "") as AnyObject,
-        "nonce": _nonce as AnyObject,
-        "value": _value as AnyObject,
-        "data": data as AnyObject,
-        "factoryDeps": (meta.factoryDeps ?? []) as AnyObject,
-        "paymasterInput": (meta.paymaster?.input ?? Data()) as AnyObject
-      ]]
-      
-      return TypedMessage(types: ZKSync.EIP712Message.types,
-                          primaryType: "Transaction",
-                          domain: ZKSync.EIP712Message.domain(with: Int(chainID?.decimalString ?? "0")),
-                          message: input,
-                          version: .v4)
+      get throws {
+        guard let chainID = chainID else { throw TransactionSignError.invalidChainId }
+        let input: [[String: AnyObject]] = [[
+          "txType": Int(self.eipType.rawValue.stringRemoveHexPrefix(), radix: 16) as AnyObject,
+          "from": (from?.address ?? "") as AnyObject,
+          "to": (to?.address ?? "") as AnyObject,
+          "ergsLimit": _ergsLimit as AnyObject,
+          "ergsPerPubdataByteLimit": meta.ergsPerPubdata as AnyObject,
+          "maxFeePerErg": _maxFeePerErg as AnyObject,
+          "maxPriorityFeePerErg": _maxPriorityFeePerErg as AnyObject,
+          "paymaster": (meta.paymaster?.paymaster.address ?? "") as AnyObject,
+          "nonce": _nonce as AnyObject,
+          "value": _value as AnyObject,
+          "data": data as AnyObject,
+          "factoryDeps": (meta.factoryDeps ?? []) as AnyObject,
+          "paymasterInput": (meta.paymaster?.input ?? Data()) as AnyObject
+        ]]
+        
+        return TypedMessage(types: ZKSync.EIP712Message.types,
+                            primaryType: "Transaction",
+                            domain: ZKSync.EIP712Message.domain(with: Int(chainID.decimalString)),
+                            message: input,
+                            version: .v4)
+      }
     }
     
     init(
@@ -331,22 +334,22 @@ public struct ZKSync {
       description += "EIPType: \(self.eipType.data.toHexString())\n"
       description += "Nonce: \(self._nonce.data.toHexString())\n"
       description += "Max Priority Fee Per Erg: \(self._maxPriorityFeePerErg.data.toHexString())\n"
-      description += "Max Fee Per Gas: \(self._maxFeePerErg.data.toHexString())\n"
-      description += "Gas Limit: \(self._gasLimit.data.toHexString())\n"
+      description += "Max Fee Per Erg: \(self._maxFeePerErg.data.toHexString())\n"
+      description += "Ergs Limit: \(self._gasLimit.data.toHexString())\n"
       description += "From: \(String(describing: self.from)) \n"
       description += "To: \(self.to?.address ?? "")\n"
       description += "Value: \(self._value.data.toHexString())\n"
       description += "Data: \(self.data.toHexString())\n"
-      description += "Access list: \n"
       description += "ChainID: \(self.chainID?.data.toHexString() ?? "none")\n"
       description += "\(self.signature?.debugDescription ?? "Signature: none")\n"
       description += "Hash: \(self.hash()?.toHexString() ?? "none")"
+      description += "Paymaster: \(self.meta.paymaster?.paymaster.address ?? "none")"
       return description
     }
     
     //
     // Creates and returns rlp array with order:
-    // RLP([nonce, maxPriorityFeePerErg, maxFeePerErg, to? || "", value, (signatureYParity, signatureR, signatureS) || (chainID, "", ""), chainID, from, ergPerPubdataLimit, factoryDeps || [], customSignature || Data(), [paymaster, paymasterInput] || []])
+    // RLP([nonce, maxPriorityFeePerErg, maxFeePerErg, ergsLimit, to? || "", value, input, (signatureYParity, signatureR, signatureS) || (chainID, "", ""), chainID, from, ergPerPubdata, factoryDeps || [], customSignature || Data(), [paymaster, paymasterInput] || []])
     //
     internal override func rlpData(chainID: BigInt? = nil, forSignature: Bool = false) -> [RLP] {
       guard !forSignature else {
