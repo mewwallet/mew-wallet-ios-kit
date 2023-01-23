@@ -138,7 +138,7 @@ extension EthEncryptedData {
 
 extension PrivateKeyEth1 {
   
-  @available(*, deprecated, message: "")
+  @available(*, deprecated, message: "Please use curve25519PublicKeyData()")
   public func eth_publicKey() throws -> String {
     return try curve25519PublicKeyData().toHexString()
   }
