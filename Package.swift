@@ -22,12 +22,18 @@ let package = Package(
     .package(url: "https://github.com/mewwallet/bls-eth-swift.git", .exact("1.0.2")),
     .package(url: "https://github.com/mewwallet/mew-wallet-ios-tweetnacl.git", .upToNextMajor(from: "1.0.2")),
     .package(url: "https://github.com/Quick/Quick.git", .upToNextMajor(from: "3.0.0")),
-    .package(url: "https://github.com/Quick/Nimble.git", .upToNextMajor(from: "9.0.0"))
+    .package(url: "https://github.com/Quick/Nimble.git", .upToNextMajor(from: "9.0.0")),
   ],
   targets: [
     .target(
       name: "mew-wallet-ios-kit",
-      dependencies: ["CryptoSwift", "mew-wallet-ios-secp256k1", "bls-eth-swift", "mew-wallet-ios-tweetnacl", "BigInt"],
+      dependencies: [
+        "CryptoSwift",
+        "mew-wallet-ios-secp256k1",
+        "mew-wallet-ios-tweetnacl",
+        "BigInt",
+        .product(name: "bls-eth-swift", package: "bls-eth-swift", condition: .when(platforms: [.iOS, .macOS, .macCatalyst]))
+      ],
       path: "Sources"
     ),
     .testTarget(

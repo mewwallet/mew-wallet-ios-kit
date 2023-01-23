@@ -7,6 +7,9 @@
 //
 
 import Foundation
+
+#if os(iOS) || os(macOS)
+
 import bls_framework
 
 private let SECRET_KEY_LENGHT = 32
@@ -98,3 +101,5 @@ extension SecretKeyEth2: BIP32 {
     return derivedSK
   }
 }
+
+#endif

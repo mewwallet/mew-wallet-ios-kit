@@ -6,6 +6,8 @@
 //  Copyright © 2020 MyEtherWallet Inc. All rights reserved.
 //
 
+#if os(iOS) || os(macOS)
+
 import Foundation
 import Quick
 import Nimble
@@ -137,3 +139,5 @@ class EIP2333Tests: QuickSpec {
     }
   }
 }
+
+#endif
