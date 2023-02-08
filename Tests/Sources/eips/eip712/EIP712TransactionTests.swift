@@ -49,20 +49,6 @@ final class EIP712TransactionTests: XCTestCase {
     XCTAssertEqual(paymasterAllowance.input?.toHexString(), "949431dc000000000000000000000000aabbccddeeff00112233445566778899aabbccdd00000000000000000000000000000000000000000000000000000000000001f40000000000000000000000000000000000000000000000000000000000000060aabbcc")
   }
   
-  func test2() {
-    let function = ABI.Element.Function(name: "general",
-                                        inputs: [
-                                          .init(name: "input", type: .dynamicBytes)
-                                        ],
-                                        outputs: [], constant: false, payable: false)
-    let parameters: [AnyObject] = [
-      Data(hex: "0xaabbcc") as AnyObject
-    ]
-    
-    let data = ABI.Element.function(function).encodeParameters(parameters)
-    debugPrint(data?.toHexString())
-  }
-  
   func testSignatureWithPaymaster() {
     let privateKey = PrivateKeyEth1(privateKey: Data(hex: "0x58d23b55bc9cdce1f18c2500f40ff4ab7245df9a89505e9b1fa4851f623d241d"), network: .ethereum)
     
