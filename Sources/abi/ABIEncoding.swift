@@ -189,9 +189,6 @@ extension ABIEncoder {
     
     // swiftlint:disable:next function_body_length cyclomatic_complexity
     public static func encodeSingleType(type: ABI.Element.ParameterType, value: AnyObject) -> Data? {
-      if let d = value as? Data {
-        return d
-      }
         switch type {
         case .uint:
             if let biguint = convertToBigUInt(value) {
