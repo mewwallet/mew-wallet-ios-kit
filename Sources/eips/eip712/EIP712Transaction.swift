@@ -88,12 +88,12 @@ public struct ZKSync {
         let input: Data?
       }
       
-      public var gasPerPubdata = BigInt(800) //DEFAULT_GAS_PER_PUBDATA_LIMIT
+      public var gasPerPubdata = BigInt(50000) //DEFAULT_GAS_PER_PUBDATA_LIMIT
       public var customSignature: Data? = nil
       public var paymaster: Paymaster? = nil
       public var factoryDeps: [Data]? = nil
       
-      public init(gasPerPubdata: BigInt = BigInt(800), customSignature: Data? = nil, paymaster: Paymaster? = nil, factoryDeps: [Data]? = nil) {
+      public init(gasPerPubdata: BigInt = BigInt(50000), customSignature: Data? = nil, paymaster: Paymaster? = nil, factoryDeps: [Data]? = nil) {
         self.gasPerPubdata = gasPerPubdata
         self.customSignature = customSignature
         self.paymaster = paymaster
