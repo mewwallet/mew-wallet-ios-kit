@@ -80,6 +80,14 @@ final class ABITests: QuickSpec {
                 let b = "000000000000000000000000b52a783858f2d1c4972590c9ce1d96f412ac95ab"
                 expect(a).to(equal(b))
             }
+            it("should work for empty data") {
+                let types = self.convert(types: ["bytes"])
+                let values = [Data() as AnyObject]
+            
+                let a = Tabi.encode(types: types, values: values)!.toHexString()
+                let b = "00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000"
+                expect(a).to(equal(b))
+            }
         }
     }
 

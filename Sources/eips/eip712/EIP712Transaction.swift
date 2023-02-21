@@ -28,10 +28,10 @@ public struct ZKSync {
           .init(name: "txType",                   type: "uint256"),
           .init(name: "from",                     type: "uint256"),
           .init(name: "to",                       type: "uint256"),
-          .init(name: "ergsLimit",                type: "uint256"),
-          .init(name: "ergsPerPubdataByteLimit",  type: "uint256"),
-          .init(name: "maxFeePerErg",             type: "uint256"),
-          .init(name: "maxPriorityFeePerErg",     type: "uint256"),
+          .init(name: "gasLimit",                 type: "uint256"),
+          .init(name: "gasPerPubdataByteLimit",   type: "uint256"),
+          .init(name: "maxFeePerGas",             type: "uint256"),
+          .init(name: "maxPriorityFeePerGas",     type: "uint256"),
           .init(name: "paymaster",                type: "uint256"),
           .init(name: "nonce",                    type: "uint256"),
           .init(name: "value",                    type: "uint256"),
@@ -88,48 +88,47 @@ public struct ZKSync {
         let input: Data?
       }
       
-      public var ergsPerPubdata = BigInt(160000) //DEFAULT_ERGS_PER_PUBDATA_LIMIT
+      public var gasPerPubdata = BigInt(50000) //DEFAULT_GAS_PER_PUBDATA_LIMIT
       public var customSignature: Data? = nil
       public var paymaster: Paymaster? = nil
       public var factoryDeps: [Data]? = nil
       
-      public init(ergsPerPubdata: BigInt = BigInt(160000), customSignature: Data? = nil, paymaster: Paymaster? = nil, factoryDeps: [Data]? = nil) {
-        self.ergsPerPubdata = ergsPerPubdata
+      public init(gasPerPubdata: BigInt = BigInt(50000), customSignature: Data? = nil, paymaster: Paymaster? = nil, factoryDeps: [Data]? = nil) {
+        self.gasPerPubdata = gasPerPubdata
         self.customSignature = customSignature
         self.paymaster = paymaster
         self.factoryDeps = factoryDeps
       }
     }
     
-    internal var _maxPriorityFeePerErg: BigInt
-    public var maxPriorityFeePerErg: Data {
-      return _maxPriorityFeePerErg.data
+    internal var _maxPriorityFeePerGas: BigInt
+    public var maxPriorityFeePerGas: Data {
+      return _maxPriorityFeePerGas.data
     }
     
-    internal var _maxFeePerErg: BigInt
-    public var maxFeePerErg: Data {
-      return _maxFeePerErg.data
+    internal var _maxFeePerGas: BigInt
+    public var maxFeePerGas: Data {
+      return _maxFeePerGas.data
     }
-    internal var _ergsLimit: BigInt { _gasLimit }
     public var meta: Meta
     
     internal var _eip712Message: TypedMessage {
       get throws {
         guard let chainID = chainID else { throw TransactionSignError.invalidChainId }
         let input: [[String: AnyObject]] = [[
-          "txType": Int(self.eipType.rawValue.stringRemoveHexPrefix(), radix: 16) as AnyObject,
-          "from": (from?.address ?? "") as AnyObject,
-          "to": (to?.address ?? "") as AnyObject,
-          "ergsLimit": _ergsLimit as AnyObject,
-          "ergsPerPubdataByteLimit": meta.ergsPerPubdata as AnyObject,
-          "maxFeePerErg": _maxFeePerErg as AnyObject,
-          "maxPriorityFeePerErg": _maxPriorityFeePerErg as AnyObject,
-          "paymaster": (meta.paymaster?.paymaster.address ?? "") as AnyObject,
-          "nonce": _nonce as AnyObject,
-          "value": _value as AnyObject,
-          "data": data as AnyObject,
-          "factoryDeps": (meta.factoryDeps ?? []) as AnyObject,
-          "paymasterInput": (meta.paymaster?.input ?? Data()) as AnyObject
+          "txType":                   Int(self.eipType.rawValue.stringRemoveHexPrefix(), radix: 16) as AnyObject,
+          "from":                     (from?.address ?? "") as AnyObject,
+          "to":                       (to?.address ?? "") as AnyObject,
+          "gasLimit":                 _gasLimit as AnyObject,
+          "gasPerPubdataByteLimit":   meta.gasPerPubdata as AnyObject,
+          "maxFeePerGas":             _maxFeePerGas as AnyObject,
+          "maxPriorityFeePerGas":     _maxPriorityFeePerGas as AnyObject,
+          "paymaster":                (meta.paymaster?.paymaster.address ?? "") as AnyObject,
+          "nonce":                    _nonce as AnyObject,
+          "value":                    _value as AnyObject,
+          "data":                     data as AnyObject,
+          "factoryDeps":              (meta.factoryDeps ?? []) as AnyObject,
+          "paymasterInput":           (meta.paymaster?.input ?? Data()) as AnyObject
         ]]
         
         return TypedMessage(types: ZKSync.EIP712Message.types,
@@ -142,9 +141,9 @@ public struct ZKSync {
     
     init(
       nonce: BigInt = BigInt(0x00),
-      maxPriorityFeePerErg: BigInt = BigInt(0x00),
-      maxFeePerErg: BigInt = BigInt(0x00),
-      ergsLimit: BigInt = BigInt(0x00),
+      maxPriorityFeePerGas: BigInt = BigInt(0x00),
+      maxFeePerGas: BigInt = BigInt(0x00),
+      gasLimit: BigInt = BigInt(0x00),
       from: Address? = nil,
       to: Address?,
       value: BigInt = BigInt(0x00),
@@ -152,13 +151,13 @@ public struct ZKSync {
       chainID: BigInt? = nil,
       meta: Meta = Meta()
     ) {
-      _maxPriorityFeePerErg = maxPriorityFeePerErg
-      _maxFeePerErg = maxFeePerErg
+      _maxPriorityFeePerGas = maxPriorityFeePerGas
+      _maxFeePerGas = maxFeePerGas
       self.meta = meta
       
       super.init(
         nonce: nonce,
-        gasLimit: ergsLimit,
+        gasLimit: gasLimit,
         from: from,
         to: to,
         value: value,
@@ -170,9 +169,9 @@ public struct ZKSync {
     
     public convenience init(
       nonce: Data = Data([0x00]),
-      maxPriorityFeePerErg: Data = Data([0x00]),
-      maxFeePerErg: Data = Data([0x00]),
-      ergsLimit: Data = Data([0x00]),
+      maxPriorityFeePerGas: Data = Data([0x00]),
+      maxFeePerGas: Data = Data([0x00]),
+      gasLimit: Data = Data([0x00]),
       from: Address? = nil,
       to: Address?,
       value: Data = Data([0x00]),
@@ -183,8 +182,8 @@ public struct ZKSync {
       if let chainID = chainID {
         self.init(
           nonce: BigInt(data: nonce),
-          maxPriorityFeePerErg: BigInt(data: maxPriorityFeePerErg),
-          maxFeePerErg: BigInt(data: maxFeePerErg),
+          maxPriorityFeePerGas: BigInt(data: maxPriorityFeePerGas),
+          maxFeePerGas: BigInt(data: maxFeePerGas),
           from: from,
           to: to,
           value: BigInt(data: value),
@@ -195,9 +194,9 @@ public struct ZKSync {
       } else {
         self.init(
           nonce: BigInt(data: nonce),
-          maxPriorityFeePerErg: BigInt(data: maxPriorityFeePerErg),
-          maxFeePerErg: BigInt(data: maxFeePerErg),
-          ergsLimit: BigInt(data: ergsLimit),
+          maxPriorityFeePerGas: BigInt(data: maxPriorityFeePerGas),
+          maxFeePerGas: BigInt(data: maxFeePerGas),
+          gasLimit: BigInt(data: gasLimit),
           from: from,
           to: to,
           value: BigInt(data: value),
@@ -210,9 +209,9 @@ public struct ZKSync {
     
     public convenience init(
       nonce: String = "0x00",
-      maxPriorityFeePerErg: String = "0x00",
-      maxFeePerErg: String = "0x00",
-      ergsLimit: String = "0x00",
+      maxPriorityFeePerGas: String = "0x00",
+      maxFeePerGas: String = "0x00",
+      gasLimit: String = "0x00",
       from: Address? = nil,
       to: Address?,
       value: String = "0x00",
@@ -221,16 +220,16 @@ public struct ZKSync {
       meta: Meta = Meta()
     ) throws {
       let nonce = BigInt(Data(hex: nonce.stringWithAlignedHexBytes()).bytes)
-      let maxPriorityFeePerErg = BigInt(Data(hex: maxPriorityFeePerErg.stringWithAlignedHexBytes()).bytes)
-      let maxFeePerErg = BigInt(Data(hex: maxFeePerErg.stringWithAlignedHexBytes()).bytes)
-      let ergsLimit = BigInt(Data(hex: ergsLimit.stringWithAlignedHexBytes()).bytes)
+      let maxPriorityFeePerGas = BigInt(Data(hex: maxPriorityFeePerGas.stringWithAlignedHexBytes()).bytes)
+      let maxFeePerGas = BigInt(Data(hex: maxFeePerGas.stringWithAlignedHexBytes()).bytes)
+      let gasLimit = BigInt(Data(hex: gasLimit.stringWithAlignedHexBytes()).bytes)
       let value = BigInt(Data(hex: value.stringWithAlignedHexBytes()).bytes)
       if let chainID = chainID {
         self.init(
           nonce: nonce,
-          maxPriorityFeePerErg: maxPriorityFeePerErg,
-          maxFeePerErg: maxFeePerErg,
-          ergsLimit: ergsLimit,
+          maxPriorityFeePerGas: maxPriorityFeePerGas,
+          maxFeePerGas: maxFeePerGas,
+          gasLimit: gasLimit,
           from: from,
           to: to,
           value: value,
@@ -241,9 +240,9 @@ public struct ZKSync {
       } else {
         self.init(
           nonce: nonce,
-          maxPriorityFeePerErg: maxPriorityFeePerErg,
-          maxFeePerErg: maxFeePerErg,
-          ergsLimit: ergsLimit,
+          maxPriorityFeePerGas: maxPriorityFeePerGas,
+          maxFeePerGas: maxFeePerGas,
+          gasLimit: gasLimit,
           from: from,
           to: to,
           value: value,
@@ -255,9 +254,9 @@ public struct ZKSync {
     
     public convenience init(
       nonce: Decimal? = nil,
-      maxPriorityFeePerErg: Decimal?,
-      maxFeePerErg: Decimal?,
-      ergsLimit: Decimal?,
+      maxPriorityFeePerGas: Decimal?,
+      maxFeePerGas: Decimal?,
+      gasLimit: Decimal?,
       from: Address? = nil,
       to: Address?,
       value: Decimal?,
@@ -266,9 +265,9 @@ public struct ZKSync {
       meta: Meta = Meta()
     ) throws {
       let nonceBigInt: BigInt
-      let maxPriorityFeePerErgBigInt: BigInt
-      let maxFeePerErgBigInt: BigInt
-      let ergsLimitBigInt: BigInt
+      let maxPriorityFeePerGasBigInt: BigInt
+      let maxFeePerGasBigInt: BigInt
+      let gasLimitBigInt: BigInt
       let valueBigInt: BigInt
       
       if let nonceString = (nonce as NSDecimalNumber?)?.stringValue, !nonceString.isEmpty {
@@ -277,22 +276,22 @@ public struct ZKSync {
         nonceBigInt = BigInt(0x00)
       }
       
-      if let maxPriorityFeePerErgString = (maxPriorityFeePerErg as NSDecimalNumber?)?.stringValue {
-        maxPriorityFeePerErgBigInt = BigInt(maxPriorityFeePerErgString) ?? BigInt(0x00)
+      if let maxPriorityFeePerGasString = (maxPriorityFeePerGas as NSDecimalNumber?)?.stringValue {
+        maxPriorityFeePerGasBigInt = BigInt(maxPriorityFeePerGasString) ?? BigInt(0x00)
       } else {
-        maxPriorityFeePerErgBigInt = BigInt(0x00)
+        maxPriorityFeePerGasBigInt = BigInt(0x00)
       }
       
-      if let maxFeePerErgString = (maxFeePerErg as NSDecimalNumber?)?.stringValue {
-        maxFeePerErgBigInt = BigInt(maxFeePerErgString) ?? BigInt(0x00)
+      if let maxFeePerGasString = (maxFeePerGas as NSDecimalNumber?)?.stringValue {
+        maxFeePerGasBigInt = BigInt(maxFeePerGasString) ?? BigInt(0x00)
       } else {
-        maxFeePerErgBigInt = BigInt(0x00)
+        maxFeePerGasBigInt = BigInt(0x00)
       }
       
-      if let ergsLimitString = (ergsLimit as NSDecimalNumber?)?.stringValue {
-        ergsLimitBigInt = BigInt(ergsLimitString) ?? BigInt(0x00)
+      if let gasLimitString = (gasLimit as NSDecimalNumber?)?.stringValue {
+        gasLimitBigInt = BigInt(gasLimitString) ?? BigInt(0x00)
       } else {
-        ergsLimitBigInt = BigInt(0x00)
+        gasLimitBigInt = BigInt(0x00)
       }
       
       if let valueString = (value as NSDecimalNumber?)?.stringValue {
@@ -304,9 +303,9 @@ public struct ZKSync {
       if let chainID = chainID {
         self.init(
           nonce: nonceBigInt,
-          maxPriorityFeePerErg: maxPriorityFeePerErgBigInt,
-          maxFeePerErg: maxFeePerErgBigInt,
-          ergsLimit: ergsLimitBigInt,
+          maxPriorityFeePerGas: maxPriorityFeePerGasBigInt,
+          maxFeePerGas: maxFeePerGasBigInt,
+          gasLimit: gasLimitBigInt,
           from: from,
           to: to,
           value: valueBigInt,
@@ -317,9 +316,9 @@ public struct ZKSync {
       } else {
         self.init(
           nonce: nonceBigInt,
-          maxPriorityFeePerErg: maxPriorityFeePerErgBigInt,
-          maxFeePerErg: maxFeePerErgBigInt,
-          ergsLimit: ergsLimitBigInt,
+          maxPriorityFeePerGas: maxPriorityFeePerGasBigInt,
+          maxFeePerGas: maxFeePerGasBigInt,
+          gasLimit: gasLimitBigInt,
           from: from,
           to: to,
           value: valueBigInt,
@@ -333,9 +332,9 @@ public struct ZKSync {
       var description = "Transaction\n"
       description += "EIPType: \(self.eipType.data.toHexString())\n"
       description += "Nonce: \(self._nonce.data.toHexString())\n"
-      description += "Max Priority Fee Per Erg: \(self._maxPriorityFeePerErg.data.toHexString())\n"
-      description += "Max Fee Per Erg: \(self._maxFeePerErg.data.toHexString())\n"
-      description += "Ergs Limit: \(self._gasLimit.data.toHexString())\n"
+      description += "Max Priority Fee Per Gas: \(self._maxPriorityFeePerGas.data.toHexString())\n"
+      description += "Max Fee Per Gas: \(self._maxFeePerGas.data.toHexString())\n"
+      description += "Gas Limit: \(self._gasLimit.data.toHexString())\n"
       description += "From: \(String(describing: self.from)) \n"
       description += "To: \(self.to?.address ?? "")\n"
       description += "Value: \(self._value.data.toHexString())\n"
@@ -349,7 +348,7 @@ public struct ZKSync {
     
     //
     // Creates and returns rlp array with order:
-    // RLP([nonce, maxPriorityFeePerErg, maxFeePerErg, ergsLimit, to? || "", value, input, (signatureYParity, signatureR, signatureS) || (chainID, "", ""), chainID, from, ergPerPubdata, factoryDeps || [], customSignature || Data(), [paymaster, paymasterInput] || []])
+    // RLP([nonce, maxPriorityFeePerGas, maxFeePerGas, gasLimit, to? || "", value, input, (signatureYParity, signatureR, signatureS) || (chainID, "", ""), chainID, from, gasPerPubdata, factoryDeps || [], customSignature || Data(), [paymaster, paymasterInput] || []])
     //
     internal override func rlpData(chainID: BigInt? = nil, forSignature: Bool = false) -> [RLP] {
       guard !forSignature else {
@@ -360,14 +359,14 @@ public struct ZKSync {
       }
       
       // 1: nonce
-      // 2: maxPriorityFeePerErg
-      // 3: maxFeePerErg
-      // 4: ergsLimit
+      // 2: maxPriorityFeePerGas
+      // 3: maxFeePerGas
+      // 4: gasLimit
       var fields: [RLP] = [
         _nonce.toRLP(),
-        _maxPriorityFeePerErg.toRLP(),
-        _maxFeePerErg.toRLP(),
-        _ergsLimit.toRLP(),
+        _maxPriorityFeePerGas.toRLP(),
+        _maxFeePerGas.toRLP(),
+        _gasLimit.toRLP(),
       ]
       
       // 5: to || 0x
@@ -391,10 +390,10 @@ public struct ZKSync {
       }
       // 9: chainID
       // 10: from
-      // 11: ergsPerPubdata
+      // 11: gasPerPubdata
       fields.append(chainID.toRLP())
       fields.append(from!.address)
-      fields.append(meta.ergsPerPubdata.toRLP())
+      fields.append(meta.gasPerPubdata.toRLP())
       
       // 12: factoryDeps
       fields.append((meta.factoryDeps ?? []) as [RLP])
