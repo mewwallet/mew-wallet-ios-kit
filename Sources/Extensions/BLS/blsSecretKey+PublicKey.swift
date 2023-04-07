@@ -12,12 +12,15 @@ import Foundation
 import bls_framework
 
 extension blsSecretKey {
-  mutating func blsPublicKey() throws -> blsPublicKey {
-    try BLSInterface.blsInit()
-    
-    var publicKey = bls_framework.blsPublicKey.init()
-    blsGetPublicKey(&publicKey, &self)
-    return publicKey
+  var blsPublicKey: blsPublicKey {
+    get throws {
+      try BLSInterface.blsInit()
+      
+      var publicKey = bls_framework.blsPublicKey.init()
+      var `self` = self
+      blsGetPublicKey(&publicKey, &self)
+      return publicKey
+    }
   }
 }
 
