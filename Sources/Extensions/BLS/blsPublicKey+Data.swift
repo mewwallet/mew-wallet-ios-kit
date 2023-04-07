@@ -14,11 +14,16 @@ import bls_framework
 private let PUBLIC_KEY_LENGHT = 48
 
 extension blsPublicKey {
-  mutating func serialize() -> Data {
-    var bytes = Data(count: PUBLIC_KEY_LENGHT).bytes
-    blsPublicKeySerialize(&bytes, PUBLIC_KEY_LENGHT, &self)
-    
-    return Data(bytes)
+  var serialized: Data {
+    get throws {
+      try BLSInterface.blsInit()
+      
+      var bytes = Data(count: PUBLIC_KEY_LENGHT).bytes
+      var `self` = self
+      blsPublicKeySerialize(&bytes, PUBLIC_KEY_LENGHT, &self)
+      
+      return Data(bytes)
+    }
   }
 }
 #endif

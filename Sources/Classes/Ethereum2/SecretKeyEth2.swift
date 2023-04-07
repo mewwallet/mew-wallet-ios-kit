@@ -49,11 +49,12 @@ extension SecretKeyEth2: PrivateKey {
   }
   
   public func publicKey(compressed: Bool? = nil) -> PublicKeyEth2? {
-    var raw = self.raw
-    guard var blsPublicKey = try? raw.blsPublicKey() else {
+    let raw = self.raw
+    guard let blsPublicKey = try? raw.blsPublicKey(),
+          let data = try? blsPublicKey.serialized else {
       return nil
     }
-    let data = blsPublicKey.serialize()
+    
     return try? PublicKeyEth2(publicKey: data, compressed: compressed, index: self.index, network: self.network)
   }
 }

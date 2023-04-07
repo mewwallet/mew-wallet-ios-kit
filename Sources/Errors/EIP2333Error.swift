@@ -12,4 +12,5 @@ public enum EIP2333Error: Error {
   case wrongSize
   case invalidOKM
   case `internal`
+  case badSignature
 }
