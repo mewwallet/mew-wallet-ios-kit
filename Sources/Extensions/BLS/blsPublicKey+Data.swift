@@ -14,7 +14,7 @@ import bls_framework
 private let PUBLIC_KEY_LENGHT = 48
 
 extension blsPublicKey {
-  var serialized: Data {
+  public var serialized: Data {
     get throws {
       try BLSInterface.blsInit()
       
