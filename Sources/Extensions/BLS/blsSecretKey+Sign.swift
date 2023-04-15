@@ -9,7 +9,7 @@ import Foundation
 import bls_framework
 
 extension blsSecretKey {
-  func sign(data toSign: Data) throws -> blsSignature {
+  public func sign(data toSign: Data) throws -> blsSignature {
     try BLSInterface.blsInit()
     
     var signature = blsSignature()

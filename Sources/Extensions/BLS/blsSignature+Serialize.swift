@@ -9,7 +9,7 @@ import Foundation
 import bls_framework
 
 extension blsSignature {
-  var serialized: Data {
+  public var serialized: Data {
     get throws {
       try BLSInterface.blsInit()
       

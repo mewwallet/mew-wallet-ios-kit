@@ -9,7 +9,7 @@ import Foundation
 import bls_framework
 
 extension blsSignature {
-  func verify(publicKey: blsPublicKey, data: Data) throws {
+  public func verify(publicKey: blsPublicKey, data: Data) throws {
     try BLSInterface.blsInit()
     
     let bytes = data.bytes
