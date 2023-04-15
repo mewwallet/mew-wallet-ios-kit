@@ -12,7 +12,7 @@ import Foundation
 import bls_framework
 
 extension blsSecretKey {
-  var blsPublicKey: blsPublicKey {
+  public var blsPublicKey: blsPublicKey {
     get throws {
       try BLSInterface.blsInit()
       

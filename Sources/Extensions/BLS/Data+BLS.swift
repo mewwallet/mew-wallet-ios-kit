@@ -16,7 +16,7 @@ import bls_framework
 private let HKDFMODR_SALT: [UInt8] = [0x42, 0x4c, 0x53, 0x2d, 0x53, 0x49, 0x47, 0x2d, 0x4b, 0x45, 0x59, 0x47, 0x45, 0x4e, 0x2d, 0x53, 0x41, 0x4c, 0x54, 0x2d]
 
 extension Data {
-  func blsSecretKey() throws -> blsSecretKey {
+  public func blsSecretKey() throws -> blsSecretKey {
     try BLSInterface.blsInit()
     
     var secretKey = bls_framework.blsSecretKey.init()
@@ -25,7 +25,7 @@ extension Data {
     return secretKey
   }
   
-  func blsPublicKey() throws -> blsPublicKey {
+  public func blsPublicKey() throws -> blsPublicKey {
     try BLSInterface.blsInit()
     
     let secretKey = try self.blsSecretKey()
