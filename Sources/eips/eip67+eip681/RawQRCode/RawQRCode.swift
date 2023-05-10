@@ -9,7 +9,7 @@
 import Foundation
 import BigInt
 
-public struct RawQRCode: EIPQRCode {
+public struct RawQRCode: EIPQRCode & Equatable {
   
   // MARK: - Properties
   
@@ -24,6 +24,7 @@ public struct RawQRCode: EIPQRCode {
   public var function: ABI.Element.Function? { return nil }
   public var parameters: [EIPQRCodeParameter] = []
   public var data: Data? { return nil }
+  public var equitable: EquatableEIPQRCode { .raw(self) }
   
   public init(_ targetAddress: Address) {
     self.targetAddress = targetAddress
