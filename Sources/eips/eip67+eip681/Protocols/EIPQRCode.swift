@@ -43,11 +43,11 @@ public enum EquatableEIPQRCode {
   }
   
   public init?(string: String) {
-    if let eip67 = EIP67Code(string) {
-      self = .eip67(eip67)
-      return
-    } else if let eip681 = EIP681Code(string) {
+    if let eip681 = EIP681Code(string) {
       self = .eip681(eip681)
+      return
+    } else if let eip67 = EIP67Code(string) {
+      self = .eip67(eip67)
       return
     } else if let raw = RawQRCode(string) {
       self = .raw(raw)
