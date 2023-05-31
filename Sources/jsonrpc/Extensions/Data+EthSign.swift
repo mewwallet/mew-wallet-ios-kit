@@ -34,6 +34,17 @@ public extension Data {
   /// - Parameter with signature: signature
   /// - Returns: Ethereum address that signed the message, nil if address could not be recovered
   func recover(with signature: Data) -> Address? {
+    guard let rawPublicKey = self.recoverPublicKey(with: signature),
+          let publicKey = try? PublicKeyEth1(publicKey: rawPublicKey, index: 0, network: .ethereum) else { return nil }
+    
+    return publicKey.address()
+  }
+  
+  /// Recovers `publicKey` from a hashed message (`self`) with provided signature.
+  ///
+  /// - Parameter with signature: signature
+  /// - Returns: Ethereum address that signed the message, nil if address could not be recovered
+  func recoverPublicKey(with signature: Data) -> Data? {
     // Normalize V part of signature
     var signature = signature
     if signature[64] > 3 {
@@ -42,11 +53,10 @@ public extension Data {
       
     let context = secp256k1_context_create(UInt32(SECP256K1_CONTEXT_VERIFY))!
     // Recover public key from signature and hash
-    guard let publicKeyRecovered = signature.secp256k1RecoverPublicKey(hash: self, context: context),
-          let publicKey = try? PublicKeyEth1(publicKey: publicKeyRecovered, index: 0, network: .ethereum) else {
+    guard let publicKeyRecovered = signature.secp256k1RecoverPublicKey(hash: self, context: context) else {
       return nil
     }
-    return publicKey.address()
+    return publicKeyRecovered
   }
 }
 
