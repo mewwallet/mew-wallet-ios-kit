@@ -17,6 +17,7 @@ public typealias NetworkPathProvider = (_ type: NetworkPathProviderType, _ index
 
 public enum Network {
   case bitcoin
+  case bitcoinSegWit
   case litecoin
   case singularDTV
   case ropsten
@@ -63,6 +64,7 @@ public enum Network {
     switch path {
     case "m/0'/0'/0'":            self = .singularDTV
     case "m/44'/0'/0'/0":         self = .bitcoin
+    case "m/84'/0'/0'/0":         self = .bitcoinSegWit
     case "m/44'/1'/0'/0":         self = .ropsten
     case "m/44'/2'/0'/0":         self = .litecoin
     case "m/44'/40'/0'/0":        self = .expanse
@@ -104,6 +106,7 @@ public enum Network {
   public var name: String {
     switch self {
     case .bitcoin:                                                            return "Bitcoin"
+    case .bitcoinSegWit:                                                      return "Bitcoin SegWit"
     case .litecoin:                                                           return "Litecoin"
     case .singularDTV:                                                        return "SingularDTV"
     case .ropsten:                                                            return "Ropsten"
@@ -200,6 +203,7 @@ public enum Network {
     switch self {
     case .singularDTV:                                          return "m/0'/0'/0'"
     case .bitcoin:                                              return "m/44'/0'/0'/0"
+    case .bitcoinSegWit:                                        return "m/84'/0'/0'/0"
     case .ropsten:                                              return "m/44'/1'/0'/0"
     case .litecoin:                                             return "m/44'/2'/0'/0"
     case .expanse:                                              return "m/44'/40'/0'/0"
@@ -242,6 +246,7 @@ public enum Network {
     switch self {
     case .singularDTV:                                          return 0
     case .bitcoin:                                              return 0
+    case .bitcoinSegWit:                                        return 0
     case .ropsten:                                              return 3
     case .litecoin:                                             return 2
     case .expanse:                                              return 2
@@ -284,7 +289,8 @@ public enum Network {
   
   var wifPrefix: UInt8? {
     switch self {
-    case .bitcoin:  return 0x80
+    case .bitcoin, .bitcoinSegWit:
+      return 0x80
     case .litecoin: return 0xB0
     default:        return nil
     }
@@ -292,7 +298,8 @@ public enum Network {
   
   var publicKeyHash: UInt8 {
     switch self {
-    case .bitcoin:  return 0x00
+    case .bitcoin, .bitcoinSegWit:
+      return 0x00
     case .litecoin: return 0x30
     default:        return 0x00
     }
@@ -300,7 +307,7 @@ public enum Network {
   
   var addressPrefix: String {
     switch self {
-    case .bitcoin:                                            return ""
+    case .bitcoin, .bitcoinSegWit:                            return ""
     case .ethereum, .ropsten, .anonymizedId, .kovan, .goerli,
         .zkSyncAlphaTestnet, .zkSyncMainnet:                  return "0x"
     case .none:                                               return ""
@@ -310,24 +317,27 @@ public enum Network {
   
   var alphabet: String? {
     switch self {
-    case .bitcoin:  return "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+    case .bitcoin, .bitcoinSegWit:
+      return "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
     default:        return nil
     }
   }
   
   var privateKeyPrefix: UInt32 {
     switch self {
-    case .bitcoin:  return 0x0488ADE4
-    case .ropsten:  return 0x04358394
-    default:        return 0
+    case .bitcoin:        return 0x0488ADE4
+    case .bitcoinSegWit:  return 0x04B2430C
+    case .ropsten:        return 0x04358394
+    default:              return 0
     }
   }
   
   var publicKeyPrefix: UInt32 {
     switch self {
-    case .bitcoin:  return 0x0488b21e
-    case .ropsten:  return 0x043587cf
-    default:        return 0
+    case .bitcoin:          return 0x0488b21e
+    case .bitcoinSegWit:    return 0x04B24746
+    case .ropsten:          return 0x043587cf
+    default:                return 0
     }
   }
   
