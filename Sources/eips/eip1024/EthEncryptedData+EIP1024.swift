@@ -14,7 +14,7 @@ public struct EthEncryptedData: Codable {
   public let nonce: String
   public let ephemPublicKey: String
   public let ciphertext: String
-  public private (set) var version = "x25519-xsalsa20-poly1305"
+  public private(set) var version = "x25519-xsalsa20-poly1305"
   
   public init(nonce: String, ephemPublicKey: String, ciphertext: String) {
     self.nonce = nonce
@@ -50,7 +50,7 @@ extension EthEncryptedData {
   ///   - senderKey: private ethereum key of sender
   ///   - publicKey: public key of recipient curve25519 in hex format
   /// - Returns: EthEncryptedData
-  public static func encrypt(plaintext: String, senderPrivateKey: PrivateKeyEth1, recipientPublicKey: String) throws -> EthEncryptedData {
+  public static func encrypt(plaintext: String, senderPrivateKey: PrivateKey, recipientPublicKey: String) throws -> EthEncryptedData {
     guard let plaintextData = plaintext.data(using: .utf8),
           let recipientPublicKey = Data(base64Encoded: recipientPublicKey) else {
       throw EthCryptoError.encryptionFailed
@@ -63,7 +63,7 @@ extension EthEncryptedData {
   /// Decrypts EthEncryptedData
   /// - Parameter privateKey: Private Ethereum key
   /// - Returns: cleartext message
-  public func decrypt(privateKey: PrivateKeyEth1) throws -> String {
+  public func decrypt(privateKey: PrivateKey) throws -> String {
     guard let privateKey = privateKey.string() else { throw EthCryptoError.keyError }
     return try decrypt(privateKey: privateKey)
   }
@@ -101,7 +101,7 @@ extension EthEncryptedData {
   ///   - senderPrivateKey: sender private key as PrivateKeyEth1
   ///   - recipientPublicKey: string of recipient's public key
   /// - Returns: cleartext message
-  public func decrypt(senderPrivateKey: PrivateKeyEth1, recipientPublicKey: String) throws -> String {
+  public func decrypt(senderPrivateKey: PrivateKey, recipientPublicKey: String) throws -> String {
     guard let privateKey = senderPrivateKey.string() else { throw EthCryptoError.keyError }
     return try decrypt(senderPrivateKey: privateKey, recipientPublicKey: recipientPublicKey)
   }
@@ -136,8 +136,7 @@ extension EthEncryptedData {
   }
 }
 
-extension PrivateKeyEth1 {
-  
+extension PrivateKey {
   @available(*, deprecated, message: "Please use curve25519PublicKeyData()")
   public func eth_publicKey() throws -> String {
     return try curve25519PublicKeyData().toHexString()

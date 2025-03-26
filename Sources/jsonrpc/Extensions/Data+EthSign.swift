@@ -23,7 +23,7 @@ public extension Data {
     return hash
   }
   
-  func sign(key: PrivateKeyEth1, leadingV: Bool) -> Data? {
+  func sign(key: PrivateKey, leadingV: Bool) -> Data? {
     self.hashPersonalMessage()?.unsafeSign(key: key.data(), leadingV: leadingV)
   }
     
@@ -35,7 +35,7 @@ public extension Data {
   /// - Returns: Ethereum address that signed the message, nil if address could not be recovered
   func recover(with signature: Data) -> Address? {
     guard let rawPublicKey = self.recoverPublicKey(with: signature),
-          let publicKey = try? PublicKeyEth1(publicKey: rawPublicKey, index: 0, network: .ethereum) else { return nil }
+          let publicKey = try? PublicKey(publicKey: rawPublicKey, index: 0, network: .ethereum) else { return nil }
     
     return publicKey.address()
   }

@@ -16,17 +16,17 @@ public extension String {
     return personalMessage.hashPersonalMessage()
   }
   
-  func signPersonalMessage(key: PrivateKeyEth1, leadingV: Bool) -> Data? {
+  func signPersonalMessage(key: PrivateKey, leadingV: Bool) -> Data? {
     return self.hashPersonalMessage()?.unsafeSign(key: key.data(), leadingV: leadingV)
   }
   
   @available(swift, obsoleted: 1.0, renamed: "signPersonalMessage(key:leadingV:)")
-  func hashPersonalMessageAndSign(key: PrivateKeyEth1, leadingV: Bool) -> Data? {
+  func hashPersonalMessageAndSign(key: PrivateKey, leadingV: Bool) -> Data? {
     return self.hashPersonalMessage()?.unsafeSign(key: key.data(), leadingV: leadingV)
   }
   
   @available(swift, obsoleted: 1.0, renamed: "signPersonalMessage(key:leadingV:)")
-  func sign(key: PrivateKeyEth1, leadingV: Bool) -> Data? {
+  func sign(key: PrivateKey, leadingV: Bool) -> Data? {
     guard let personalMessage = self.data(using: .utf8) else {
       return nil
     }

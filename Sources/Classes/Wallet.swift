@@ -8,7 +8,7 @@
 
 import Foundation
 
-public final class Wallet<PK: PrivateKey> {
+public final class Wallet<PK: IPrivateKey> {
   
   // MARK: - Static methods
   

@@ -92,7 +92,7 @@ class EIP2333Tests: QuickSpec {
           it("Should pass test vector - \(idx)") {
             do {
               let seedData = Data(hex: vector.seed)
-              let wallet = try Wallet<SecretKeyEth2>(seed: seedData)
+              let wallet = try Wallet<BLSSecretKey>(seed: seedData)
               let rootSKdata = Data(wallet.privateKey.data())
               guard let rootSK = BigInt(rootSKdata.toHexString(), radix: 16) else {
                 fail("Can't get rootSK")
@@ -124,10 +124,10 @@ class EIP2333Tests: QuickSpec {
           it("Should pass test vector - \(idx)") {
             do {
               let seedData = Data(hex: vector.seed)
-              let wallet = try Wallet<SecretKeyEth2>(seed: seedData)
+              let wallet = try Wallet<BLSSecretKey>(seed: seedData)
               let derivedWallet = try wallet.derive(vector.derivationPath)
               let rootSKdata = derivedWallet.privateKey.data()
-              let secretKey = try SecretKeyEth2(privateKey: rootSKdata)
+              let secretKey = try BLSSecretKey(privateKey: rootSKdata)
               let publicKey = secretKey.publicKey()?.data()
               expect(publicKey?.toHexString().lowercased()).to(equal(vector.publicKey))
             } catch {

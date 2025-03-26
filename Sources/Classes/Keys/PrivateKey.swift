@@ -13,7 +13,10 @@ import BigInt
 
 private let HMACKeyData: [UInt8] = [0x42, 0x69, 0x74, 0x63, 0x6F, 0x69, 0x6E, 0x20, 0x73, 0x65, 0x65, 0x64] // "Bitcoin seed"
 
-public struct PrivateKeyEth1 {
+@available(*, deprecated, renamed: "PrivateKey", message: "Please use PrivateKey instead")
+public typealias PrivateKeyEth1 = PrivateKey
+
+public struct PrivateKey {
   private let raw: Data
   private let chainCode: Data
   private let depth: UInt8
@@ -31,9 +34,9 @@ public struct PrivateKeyEth1 {
   }
 }
 
-// MARK: - PrivateKey
+// MARK: - IPrivateKey
 
-extension PrivateKeyEth1: PrivateKey {
+extension PrivateKey: IPrivateKey {
   public var hardenedEdge: Bool {
     return true
   }
@@ -60,9 +63,9 @@ extension PrivateKeyEth1: PrivateKey {
     self.network = network
   }
   
-  public func publicKey(compressed: Bool? = nil) throws -> PublicKeyEth1 {
+  public func publicKey(compressed: Bool? = nil) throws -> PublicKey {
     let compressed = compressed ?? self.network.publicKeyCompressed
-    let publicKey = try PublicKeyEth1(
+    let publicKey = try PublicKey(
         privateKey: self.raw,
         compressed: compressed,
         chainCode: self.chainCode,
@@ -77,9 +80,10 @@ extension PrivateKeyEth1: PrivateKey {
 
 // MARK: - Key
 
-extension PrivateKeyEth1: Key {
+extension PrivateKey: IKey {
   public func string() -> String? {
-    guard let wifPrefix = self.network.wifPrefix, let alphabet = self.network.alphabet else {
+    guard let wifPrefix = self.network.wifPrefix,
+          let alphabet = self.network.alphabet else {
       return self.raw.toHexString()
     }
     var data = Data()
@@ -118,8 +122,8 @@ extension PrivateKeyEth1: Key {
 
 // MARK: - BIP32
 
-extension PrivateKeyEth1: BIP32 {
-  public func derived(nodes: [DerivationNode]) throws -> PrivateKeyEth1 {
+extension PrivateKey: BIP32 {
+  public func derived(nodes: [DerivationNode]) throws -> Self {
     if case .none = self.network {
       return self
     }
@@ -166,7 +170,7 @@ extension PrivateKeyEth1: BIP32 {
     derivedChainCode = Data(digest[32 ..< 64])
     
     let fingerprint = Data(publicKeyData.ripemd160().prefix(4))
-    let derivedPrivateKey = PrivateKeyEth1(
+    let derivedPrivateKey = Self(
         privateKey: derivedPrivateKeyData,
         chainCode: derivedChainCode,
         depth: self.depth + 1,

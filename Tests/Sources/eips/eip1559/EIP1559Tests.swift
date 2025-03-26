@@ -33,7 +33,7 @@ final class EIP1559Tests: QuickSpec {
       chainID: BigInt,
       pk: String
     ) {
-      let privateKey = PrivateKeyEth1(privateKey: Data(hex: pk), network: .ethereum)
+      let privateKey = PrivateKey(privateKey: Data(hex: pk), network: .ethereum)
 
       self.id = id
       self.transaction = EIP1559Transaction(
@@ -67,7 +67,7 @@ final class EIP1559Tests: QuickSpec {
       chainID: Data,
       pk: String
     ) {
-      let privateKey = PrivateKeyEth1(privateKey: Data(hex: pk), network: .ethereum)
+      let privateKey = PrivateKey(privateKey: Data(hex: pk), network: .ethereum)
 
       self.id = id
       self.transaction = try! EIP1559Transaction(
@@ -245,7 +245,7 @@ final class EIP1559Tests: QuickSpec {
         for vector in self.testVectors {
           do {
             let transaction = vector.transaction
-            let privateKey = PrivateKeyEth1(privateKey: vector.pk, network: .ethereum)
+            let privateKey = PrivateKey(privateKey: vector.pk, network: .ethereum)
             
             try transaction.sign(key: privateKey)
             expect(transaction.signature).toNot(beNil())
@@ -266,7 +266,7 @@ final class EIP1559Tests: QuickSpec {
     
     it("test real transaction") {
       do {
-        let pk = PrivateKeyEth1(privateKey: Data(hex: "e3046226c9d5f6b7fda49b00123fe96ab2fac359315f27169b5c984059b3540f"), network: .ethereum)
+        let pk = PrivateKey(privateKey: Data(hex: "e3046226c9d5f6b7fda49b00123fe96ab2fac359315f27169b5c984059b3540f"), network: .ethereum)
         
         let transaction = try! EIP1559Transaction(
           nonce: "0x0",
@@ -293,7 +293,7 @@ final class EIP1559Tests: QuickSpec {
     
     it("test real transaction with access list") {
       do {
-        let pk = PrivateKeyEth1(privateKey: Data(hex: "e3046226c9d5f6b7fda49b00123fe96ab2fac359315f27169b5c984059b3540f"), network: .ethereum)
+        let pk = PrivateKey(privateKey: Data(hex: "e3046226c9d5f6b7fda49b00123fe96ab2fac359315f27169b5c984059b3540f"), network: .ethereum)
         
         let transaction = try! EIP1559Transaction(
           nonce: "0x01",

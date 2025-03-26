@@ -19,7 +19,7 @@ class EIP1024Tests: QuickSpec {
         ciphertext: "f8kBcl/NCyf3sybfbwAKk/np2Bzt9lRVkZejr6uh5FgnNlH/ic62DZzy"
     )
     let recipientPrivateKeyString = "7e5374ec2ef0d91761a6e72fdf8f6ac665519bfdf6da0a2329cf0d804514b816"
-    private let senderPrivateKey = try! PrivateKeyEth1(seed: Data(hex: "0xc55257c360c07c72029aebc1b53c05ed0362ada38ead3e3e9efa3708e53495531f09a6987599d18264c1e1c92f2cf141630c7a3c4ab7c81b2f001698e7463b04"), network: .ethereum)
+    private let senderPrivateKey = try! PrivateKey(seed: Data(hex: "0xc55257c360c07c72029aebc1b53c05ed0362ada38ead3e3e9efa3708e53495531f09a6987599d18264c1e1c92f2cf141630c7a3c4ab7c81b2f001698e7463b04"), network: .ethereum)
 
     override func spec() {
         describe("salsa decryption") {
@@ -36,7 +36,7 @@ class EIP1024Tests: QuickSpec {
             it("should convert Ethereum keys to curve25519") {
                 do {
                     let privateKey = Data([0x7e, 0x53, 0x74, 0xec, 0x2e, 0xf0, 0xd9, 0x17, 0x61, 0xa6, 0xe7, 0x2f, 0xdf, 0x8f, 0x6a, 0xc6, 0x65, 0x51, 0x9b, 0xfd, 0xf6, 0xda, 0x0a, 0x23, 0x29, 0xcf, 0x0d, 0x80, 0x45, 0x14, 0xb8, 0x16])
-                    let ethPrivateKey = try PrivateKeyEth1(seed: privateKey, network: .ethereum)
+                    let ethPrivateKey = try PrivateKey(seed: privateKey, network: .ethereum)
                     let keypair = try TweetNacl.keyPair(fromSecretKey: ethPrivateKey.data())
                     
                     expect(keypair.secretKey.count) == 32
@@ -51,7 +51,7 @@ class EIP1024Tests: QuickSpec {
         describe("roundtrip") {
             it("should encrypt and then decrypt the data") {
                 
-                let recipientEthKey = PrivateKeyEth1(privateKey: Data(hex: self.recipientPrivateKeyString), network: .ethereum)
+                let recipientEthKey = PrivateKey(privateKey: Data(hex: self.recipientPrivateKeyString), network: .ethereum)
                 expect(recipientEthKey.string()!) == "7e5374ec2ef0d91761a6e72fdf8f6ac665519bfdf6da0a2329cf0d804514b816"
                 
                 do {

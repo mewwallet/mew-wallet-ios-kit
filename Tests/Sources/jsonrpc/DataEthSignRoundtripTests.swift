@@ -13,11 +13,11 @@ import Nimble
 class DataEthSignRoundtripTests: QuickSpec {
   
   class TestVector {
-    let privateKey: PrivateKeyEth1
+    let privateKey: PrivateKey
     let address: Address
     
     init(_ privateKey: String, _ address: String) {
-      self.privateKey = PrivateKeyEth1(privateKey: Data(hex: privateKey), network: .ethereum)
+      self.privateKey = PrivateKey(privateKey: Data(hex: privateKey), network: .ethereum)
       self.address = Address(address: address)!
     }
   }

@@ -12,7 +12,7 @@ import XCTest
 
 final class EIP712TransactionTests: XCTestCase {
   func testSignature() {
-    let privateKey = PrivateKeyEth1(privateKey: Data(hex: "0x58d23b55bc9cdce1f18c2500f40ff4ab7245df9a89505e9b1fa4851f623d241d"), network: .ethereum)
+    let privateKey = PrivateKey(privateKey: Data(hex: "0x58d23b55bc9cdce1f18c2500f40ff4ab7245df9a89505e9b1fa4851f623d241d"), network: .ethereum)
     
     let transaction = ZKSync.EIP712Transaction(
       nonce: BigInt(0),
@@ -56,7 +56,7 @@ final class EIP712TransactionTests: XCTestCase {
   }
   
   func testSignatureWithPaymaster() {
-    let privateKey = PrivateKeyEth1(privateKey: Data(hex: "0x58d23b55bc9cdce1f18c2500f40ff4ab7245df9a89505e9b1fa4851f623d241d"), network: .ethereum)
+    let privateKey = PrivateKey(privateKey: Data(hex: "0x58d23b55bc9cdce1f18c2500f40ff4ab7245df9a89505e9b1fa4851f623d241d"), network: .ethereum)
     
     let transaction = ZKSync.EIP712Transaction(
       nonce: BigInt(0),

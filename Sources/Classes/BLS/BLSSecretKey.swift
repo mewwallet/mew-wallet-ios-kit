@@ -14,7 +14,10 @@ import bls_framework
 
 private let SECRET_KEY_LENGHT = 32
 
-public struct SecretKeyEth2 {
+@available(*, deprecated, renamed: "BLSSecretKey", message: "Please use BLSSecretKey instead")
+public typealias SecretKeyEth2 = BLSSecretKey
+
+public struct BLSSecretKey {
   private let raw: Data
   private let index: UInt32
   public let network: Network
@@ -28,7 +31,7 @@ public struct SecretKeyEth2 {
 
 // MARK: - PrivateKey
 
-extension SecretKeyEth2: PrivateKey {
+extension BLSSecretKey: IPrivateKey {
   public var hardenedEdge: Bool {
     return false
   }
@@ -48,20 +51,20 @@ extension SecretKeyEth2: PrivateKey {
     self.network = network
   }
   
-  public func publicKey(compressed: Bool? = nil) -> PublicKeyEth2? {
+  public func publicKey(compressed: Bool? = nil) -> BLSPublicKey? {
     let raw = self.raw
     guard let blsPublicKey = try? raw.blsPublicKey(),
           let data = try? blsPublicKey.serialized else {
       return nil
     }
     
-    return try? PublicKeyEth2(publicKey: data, compressed: compressed, index: self.index, network: self.network)
+    return try? BLSPublicKey(publicKey: data, compressed: compressed, index: self.index, network: self.network)
   }
 }
 
 // MARK: - Key
 
-extension SecretKeyEth2: Key {
+extension BLSSecretKey: IKey {
   public func string() -> String? {
     return self.raw.toHexString()
   }
@@ -81,8 +84,8 @@ extension SecretKeyEth2: Key {
 
 // MARK: - BIP32
 
-extension SecretKeyEth2: BIP32 {
-  public func derived(nodes: [DerivationNode]) throws -> SecretKeyEth2 {
+extension BLSSecretKey: BIP32 {
+  public func derived(nodes: [DerivationNode]) throws -> BLSSecretKey {
     if case .none = self.network {
       return self
     }
@@ -93,9 +96,9 @@ extension SecretKeyEth2: BIP32 {
     let node = nodes.removeFirst()
     
     let derivedSKRaw = try self.raw.deriveChildSK(index: node.index())
-    let derivedSK = SecretKeyEth2(privateKey: derivedSKRaw,
-                                  index: node.index(),
-                                  network: self.network)
+    let derivedSK = BLSSecretKey(privateKey: derivedSKRaw,
+                                 index: node.index(),
+                                 network: self.network)
     if nodes.count > 0 {
       return try derivedSK.derived(nodes: nodes)
     }

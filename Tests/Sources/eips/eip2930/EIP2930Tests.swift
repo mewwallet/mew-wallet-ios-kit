@@ -37,7 +37,7 @@ final class EIP2930Tests: QuickSpec {
       chainID: String,
       pk: String
     ) {
-      let privateKey = PrivateKeyEth1(privateKey: Data(hex: pk), network: .ethereum)
+      let privateKey = PrivateKey(privateKey: Data(hex: pk), network: .ethereum)
 
       self.id = id
       self.transaction = try! EIP2930Transaction(
@@ -99,7 +99,7 @@ final class EIP2930Tests: QuickSpec {
         for vector in self.testVectors {
           do {
             let transaction = vector.transaction
-            let privateKey = PrivateKeyEth1(privateKey: vector.pk, network: .ethereum)
+            let privateKey = PrivateKey(privateKey: vector.pk, network: .ethereum)
             
             if let unsignedTransactionRLP = vector.unsignedTransactionRLP {
               expect(transaction.serialize()).to(equal(unsignedTransactionRLP))

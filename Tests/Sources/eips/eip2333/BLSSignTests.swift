@@ -45,12 +45,12 @@ final class BLSSignTests: XCTestCase {
   
   // MARK: - Private
   
-  private func withdrawalWallet(mnemonic: [String], index: UInt32 = 0) throws -> Wallet<SecretKeyEth2> {
+  private func withdrawalWallet(mnemonic: [String], index: UInt32 = 0) throws -> Wallet<BLSSecretKey> {
     let network: Network = .eth2Withdrawal
     let suffix = network.pathSuffix()
     
     let bip39 = BIP39(mnemonic: mnemonic)
-    let wallet = try Wallet<SecretKeyEth2>.restore(bip39: bip39, network: network)
+    let wallet = try Wallet<BLSSecretKey>.restore(bip39: bip39, network: network)
     let rootWallet = try wallet.derive(network)
     
     let path = String(index) + suffix

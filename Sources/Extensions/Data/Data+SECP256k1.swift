@@ -28,8 +28,11 @@ extension Data {
     
     let status: Int32
     if extraEntropy {
-      guard var entropy = Data.randomBytes(length: 32) else { return nil }
-      status = secp256k1_ecdsa_sign_recoverable(context, &signature, &data, &key, secp256k1_nonce_function_rfc6979, &entropy)
+      guard let entropy = Data.randomBytes(length: 32) else { return nil }
+      status = entropy.withUnsafeBytes { entropyBytes in
+        guard let entropyBaseAddress = entropyBytes.baseAddress else { return 0 }
+        return secp256k1_ecdsa_sign_recoverable(context, &signature, &data, &key, secp256k1_nonce_function_rfc6979, entropyBaseAddress)
+      }
     } else {
       status = secp256k1_ecdsa_sign_recoverable(context, &signature, &data, &key, secp256k1_nonce_function_rfc6979, nil)
     }
@@ -58,7 +61,7 @@ extension Data {
     return publicKey
   }
   
-  public func secp256k1Multiply(privateKey: PrivateKeyEth1) -> Data? {
+  public func secp256k1Multiply(privateKey: PrivateKey) -> Data? {
     return self.secp256k1Multiply(privateKey: privateKey.data())
   }
   

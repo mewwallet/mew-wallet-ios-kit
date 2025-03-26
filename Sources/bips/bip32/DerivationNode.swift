@@ -22,7 +22,7 @@ public enum DerivationNode {
   case nonHardened(UInt32)
   
   init?(component: String, checkHardenedEdge: Bool) throws {
-    guard !component.hasPrefix("m") else {
+    guard !component.isEmpty, !component.hasPrefix("m") else {
       return nil
     }
     guard let index = UInt32(component.trimmingCharacters(in: hardenedCharacterSet)) else {

@@ -487,7 +487,7 @@ class EIP712Tests: QuickSpec {
     describe("sign payload v3") {
       it("should sign payload") {
         do {
-          let pk = PrivateKeyEth1(privateKey: "cow".data(using: .utf8)!.sha3(.keccak256))
+          let pk = PrivateKey(privateKey: "cow".data(using: .utf8)!.sha3(.keccak256))
           let payload = SignedMessagePayload(data: self.typedMessage, signature: nil)
           
           let signed = try signTypedMessage(privateKey: pk, payload: payload, version: .v3)
@@ -702,7 +702,7 @@ class EIP712Tests: QuickSpec {
     describe("sign payload v4") {
       it("should sign payload") {
         do {
-          let pk = PrivateKeyEth1(privateKey: "cow".data(using: .utf8)!.sha3(.keccak256))
+          let pk = PrivateKey(privateKey: "cow".data(using: .utf8)!.sha3(.keccak256))
           let payload = SignedMessagePayload(data: self.typedMessage_v4, signature: nil)
           
           let signed = try signTypedMessage(privateKey: pk, payload: payload, version: .v4)
@@ -756,7 +756,7 @@ class EIP712Tests: QuickSpec {
       
       it("should sign the message") {
         let expected = "0xaf453442075953aced4d54ccf5773a486fd03d9c5a853a1163594209ba1c637409acf82e335e464487c375c4438e1bfc56725fd039255d4ddf33f7fcdafebe931b"
-        let pk = PrivateKeyEth1(privateKey: Data(hex: "0x5a2ca5de56191208ba8f8d230c29fa2b0d93226743eb00f2fb7a33c9b3305edf"))
+        let pk = PrivateKey(privateKey: Data(hex: "0x5a2ca5de56191208ba8f8d230c29fa2b0d93226743eb00f2fb7a33c9b3305edf"))
         
         do {
           let payload = SignedMessagePayload(data: self.typedMessageWithBytes32_v3, signature: nil)

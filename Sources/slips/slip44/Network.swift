@@ -16,11 +16,14 @@ public enum NetworkPathProviderType {
 public typealias NetworkPathProvider = (_ type: NetworkPathProviderType, _ index: UInt32?) -> String
 
 public enum Network {
-  case bitcoin
-  case bitcoinSegWit
+  public enum Bitcoin {
+    case legacy
+    case segwit
+    case segwitTestnet
+  }
+  case bitcoin(_ format: Bitcoin)
   case litecoin
   case singularDTV
-  case ropsten
   case expanse
   case ledgerLiveEthereum
   case keepkeyEthereum
@@ -63,9 +66,8 @@ public enum Network {
   public init(path: String, pathProvider: NetworkPathProvider? = nil, chainID: UInt32 = 0) {
     switch path {
     case "m/0'/0'/0'":            self = .singularDTV
-    case "m/44'/0'/0'/0":         self = .bitcoin
-    case "m/84'/0'/0'/0":         self = .bitcoinSegWit
-    case "m/44'/1'/0'/0":         self = .ropsten
+    case "m/44'/0'/0'/0":         self = .bitcoin(.legacy)
+    case "m/84'/0'/0'/0":         self = .bitcoin(.segwit)
     case "m/44'/2'/0'/0":         self = .litecoin
     case "m/44'/40'/0'/0":        self = .expanse
     case "m/44'/60'":             self = .keepkeyEthereum
@@ -105,11 +107,14 @@ public enum Network {
   
   public var name: String {
     switch self {
-    case .bitcoin:                                                            return "Bitcoin"
-    case .bitcoinSegWit:                                                      return "Bitcoin SegWit"
+    case .bitcoin(let format):
+      switch format {
+      case .legacy:                                                           return "Bitcoin"
+      case .segwit:                                                           return "Bitcoin SegWit"
+      case .segwitTestnet:                                                    return "Bitcoin SegWit testned"
+      }
     case .litecoin:                                                           return "Litecoin"
     case .singularDTV:                                                        return "SingularDTV"
-    case .ropsten:                                                            return "Ropsten"
     case .expanse:                                                            return "Expanse"
     case .ledgerLiveEthereum:                                                 return "Ethereum - Ledger Live"
     case .ethereum, .ledgerEthereum, .keepkeyEthereum:                        return "Ethereum"
@@ -202,9 +207,12 @@ public enum Network {
   public var path: String {
     switch self {
     case .singularDTV:                                          return "m/0'/0'/0'"
-    case .bitcoin:                                              return "m/44'/0'/0'/0"
-    case .bitcoinSegWit:                                        return "m/84'/0'/0'/0"
-    case .ropsten:                                              return "m/44'/1'/0'/0"
+    case .bitcoin(let format):
+      switch format {
+      case .legacy:                                             return "m/44'/0'/0'/0"
+      case .segwit:                                             return "m/84'/0'/0'/0"
+      case .segwitTestnet:                                      return "m/84'/0'/0'/0"
+      }
     case .litecoin:                                             return "m/44'/2'/0'/0"
     case .expanse:                                              return "m/44'/40'/0'/0"
     case .ledgerLiveEthereum, .keepkeyEthereum:                 return "m/44'/60'"
@@ -246,8 +254,6 @@ public enum Network {
     switch self {
     case .singularDTV:                                          return 0
     case .bitcoin:                                              return 0
-    case .bitcoinSegWit:                                        return 0
-    case .ropsten:                                              return 3
     case .litecoin:                                             return 2
     case .expanse:                                              return 2
     case .ledgerLiveEthereum, .keepkeyEthereum:                 return 1
@@ -289,7 +295,7 @@ public enum Network {
   
   var wifPrefix: UInt8? {
     switch self {
-    case .bitcoin, .bitcoinSegWit:
+    case .bitcoin:
       return 0x80
     case .litecoin: return 0xB0
     default:        return nil
@@ -298,8 +304,7 @@ public enum Network {
   
   var publicKeyHash: UInt8 {
     switch self {
-    case .bitcoin, .bitcoinSegWit:
-      return 0x00
+    case .bitcoin:  return 0x00
     case .litecoin: return 0x30
     default:        return 0x00
     }
@@ -307,8 +312,13 @@ public enum Network {
   
   var addressPrefix: String {
     switch self {
-    case .bitcoin, .bitcoinSegWit:                            return ""
-    case .ethereum, .ropsten, .anonymizedId, .kovan, .goerli,
+    case .bitcoin(let format):
+      switch format {
+        case .legacy:                                         return ""
+        case .segwit:                                         return "bc"
+        case .segwitTestnet:                                  return "tb"
+      }
+    case .ethereum, .anonymizedId, .kovan, .goerli,
         .zkSyncAlphaTestnet, .zkSyncMainnet:                  return "0x"
     case .none:                                               return ""
     default:                                                  return "0x"
@@ -317,26 +327,31 @@ public enum Network {
   
   var alphabet: String? {
     switch self {
-    case .bitcoin, .bitcoinSegWit:
-      return "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-    default:        return nil
+    case .bitcoin:          return "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+    default:                return nil
     }
   }
   
   var privateKeyPrefix: UInt32 {
     switch self {
-    case .bitcoin:        return 0x0488ADE4
-    case .bitcoinSegWit:  return 0x04B2430C
-    case .ropsten:        return 0x04358394
-    default:              return 0
+    case .bitcoin(let format):
+      switch format {
+      case .legacy:         return 0x0488ADE4
+      case .segwit:         return 0x04B2430C
+      case .segwitTestnet:  return 0x04B2430C
+      }
+    default:                return 0
     }
   }
   
   var publicKeyPrefix: UInt32 {
     switch self {
-    case .bitcoin:          return 0x0488b21e
-    case .bitcoinSegWit:    return 0x04B24746
-    case .ropsten:          return 0x043587cf
+    case .bitcoin(let format):
+      switch format {
+      case .legacy:         return 0x0488b21e
+      case .segwit:         return 0x04B24746
+      case .segwitTestnet:  return 0x04B24746
+      }
     default:                return 0
     }
   }
@@ -344,7 +359,7 @@ public enum Network {
   var publicKeyCompressed: Bool {
     switch self {
     case .bitcoin, .litecoin:                                 return true
-    case .ethereum, .ropsten, .anonymizedId, .kovan, .goerli,
+    case .ethereum, .anonymizedId, .kovan, .goerli,
         .zkSyncMainnet, .zkSyncAlphaTestnet:                  return false
     default:                                                  return false
     }
@@ -356,7 +371,6 @@ public enum Network {
     case .ethereum: return "eth"
     case .kovan:    return "kov"
     case .goerli:   return "goe"
-    case .ropsten:  return "rop"
     default:        return ""
     }
   }

@@ -128,7 +128,7 @@ class EIP155Tests: QuickSpec {
                 fail("Can't recover public key. id: \(vector.id)")
                 continue
               }
-              let publicKey = try PublicKeyEth1(publicKey: publicKeyData, index: 0, network: .ethereum)
+              let publicKey = try PublicKey(publicKey: publicKeyData, index: 0, network: .ethereum)
               expect(publicKey.address()?.address).notTo(beNil())
               let lowercasedAddress = publicKey.address()?.address.lowercased()
               expect(vector.sender).to(equal(lowercasedAddress), description: "Invalid sender. id: \(vector.id)")
@@ -146,7 +146,7 @@ class EIP155Tests: QuickSpec {
         expect(transaction).toNot(beNil())
         expect(transaction?.hash()).to(equal(Data(hex: "0x91e0ad336c23d84f757aa4cde2d0bb557daf5e1ca0a0b850b6431f3277fc167b")))
 
-        let privateKey = PrivateKeyEth1(privateKey: Data(hex: "3a0ce9a362c73439adb38c595e739539be1e34d19c5e9f04962c101c86bd7616"), network: .ethereum)
+        let privateKey = PrivateKey(privateKey: Data(hex: "3a0ce9a362c73439adb38c595e739539be1e34d19c5e9f04962c101c86bd7616"), network: .ethereum)
         do {
           try transaction?.sign(key: privateKey)
         } catch {
@@ -164,7 +164,7 @@ class EIP155Tests: QuickSpec {
                                            to: Address(raw: "0x5c5220918B616E583515A7F42b6bE0c967664462"), value: "0xc8", data: Data([]))
         expect(transaction?.serialize()?.toHexString()).to(equal("e08082010683033450945c5220918b616e583515a7f42b6be0c96766446281c880"))
 
-        let privateKey = PrivateKeyEth1(privateKey: Data(hex: "009312d3c3a8ac6d00fb2df851e1cb0023becc00cc7a0083b0ae70f4bd0575ae"), network: .ethereum)
+        let privateKey = PrivateKey(privateKey: Data(hex: "009312d3c3a8ac6d00fb2df851e1cb0023becc00cc7a0083b0ae70f4bd0575ae"), network: .ethereum)
         expect(privateKey.address()?.address.lowercased()).to(equal("0x5c5220918b616e583515a7f42b6be0c967664462"))
         do {
           try transaction?.sign(key: privateKey)

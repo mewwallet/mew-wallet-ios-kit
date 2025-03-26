@@ -141,7 +141,7 @@ class BIP32Tests: QuickSpec {
       it("Should derive correct private keys") {
         for vector in self.testVectors {
           do {
-            let rootKey = try PrivateKeyEth1(seed: vector.seed, network: .bitcoin)
+            let rootKey = try PrivateKey(seed: vector.seed, network: .bitcoin(.legacy))
             let derivationNodes = try vector.path.derivationPath(checkHardenedEdge: true)
             
             let derivedPrivateKey = try rootKey.derived(nodes: derivationNodes)
@@ -155,7 +155,7 @@ class BIP32Tests: QuickSpec {
         }
       }
       it("Should return correct public address") {
-        let privateKey = PrivateKeyEth1(privateKey: Data(hex: "0x58d23b55bc9cdce1f18c2500f40ff4ab7245df9a89505e9b1fa4851f623d241d"), network: .ethereum)
+        let privateKey = PrivateKey(privateKey: Data(hex: "0x58d23b55bc9cdce1f18c2500f40ff4ab7245df9a89505e9b1fa4851f623d241d"), network: .ethereum)
         let publicKey = try privateKey.publicKey(compressed: false)
         expect(publicKey.address()?.address).to(equal("0xdC544d1AA88Ff8bbd2F2AeC754B1F1e99e1812fd"))
       }

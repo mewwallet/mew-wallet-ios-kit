@@ -21,7 +21,7 @@ enum TransactionSignError: Error {
 }
 
 extension Transaction {
-  public func sign(key: PrivateKeyEth1, extraEntropy: Bool = false) throws {
+  public func sign(key: PrivateKey, extraEntropy: Bool = false) throws {
     if self.chainID == nil {
       self.chainID = BigInt(key.network.chainID)
     }
@@ -48,7 +48,7 @@ extension Transaction {
     }
   }
   
-  private func eip155sign(privateKey: PrivateKeyEth1, extraEntropy: Bool = false, context: OpaquePointer/*secp256k1_context*/) throws -> (serialized: Data?, raw: Data?) {
+  private func eip155sign(privateKey: PrivateKey, extraEntropy: Bool = false, context: OpaquePointer/*secp256k1_context*/) throws -> (serialized: Data?, raw: Data?) {
     let privateKeyData = privateKey.data()
     guard privateKeyData.secp256k1Verify(context: context) else { throw TransactionSignError.invalidPrivateKey }
     guard self.chainID != nil else { throw TransactionSignError.invalidChainId }

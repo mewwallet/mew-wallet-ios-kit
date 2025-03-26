@@ -8,7 +8,7 @@
 
 import Foundation
 
-public protocol Key {
+public protocol IKey {
   var network: Network { get }
   func string() -> String?
   func extended() -> String?

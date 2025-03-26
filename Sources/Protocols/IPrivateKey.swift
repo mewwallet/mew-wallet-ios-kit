@@ -8,7 +8,7 @@
 
 import Foundation
 
-public protocol PrivateKey: Key, BIP32 where BIPPK == Self {
+public protocol IPrivateKey: IKey, BIP32 where BIPPK == Self {
   // swiftlint:disable:next type_name
   associatedtype PK
  

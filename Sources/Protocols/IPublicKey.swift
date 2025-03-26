@@ -8,6 +8,6 @@
 
 import Foundation
 
-protocol PublicKey: Key {
+protocol IPublicKey: IKey {
   init(publicKey: Data, compressed: Bool?, index: UInt32, network: Network) throws
 }

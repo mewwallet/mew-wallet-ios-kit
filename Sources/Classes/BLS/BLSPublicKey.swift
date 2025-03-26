@@ -10,7 +10,10 @@
 
 import Foundation
 
-public struct PublicKeyEth2: PublicKey {
+@available(*, deprecated, renamed: "BLSPublicKey", message: "Please use BLSPublicKey instead")
+public typealias PublicKeyEth2 = BLSPublicKey
+
+public struct BLSPublicKey: IPublicKey {
   private let raw: Data
   private let index: UInt32
   public let network: Network
@@ -22,7 +25,7 @@ public struct PublicKeyEth2: PublicKey {
   }
 }
 
-extension PublicKeyEth2: Key {
+extension BLSPublicKey: IKey {
   public func string() -> String? {
     return self.raw.toHexString()
   }

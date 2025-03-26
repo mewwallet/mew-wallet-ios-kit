@@ -9,7 +9,7 @@
 import Foundation
 import mew_wallet_ios_secp256k1
 
-private struct PublicKeyEth1Constants {
+private struct PublicKeyConstants {
   static let compressedKeySize = 33
   static let decompressedKeySize = 65
   
@@ -17,15 +17,15 @@ private struct PublicKeyEth1Constants {
   static let decompressedFlags = UInt32(SECP256K1_EC_UNCOMPRESSED)
 }
 
-private struct PublicKeyEth1Config {
+private struct PublicKeyConfig {
   private let compressed: Bool
   
   var keySize: Int {
-    return self.compressed ? PublicKeyEth1Constants.compressedKeySize : PublicKeyEth1Constants.decompressedKeySize
+    return self.compressed ? PublicKeyConstants.compressedKeySize : PublicKeyConstants.decompressedKeySize
   }
   
   var keyFlags: UInt32 {
-    return self.compressed ? PublicKeyEth1Constants.compressedFlags : PublicKeyEth1Constants.decompressedFlags
+    return self.compressed ? PublicKeyConstants.compressedFlags : PublicKeyConstants.decompressedFlags
   }
   
   init(compressed: Bool) {
@@ -33,17 +33,20 @@ private struct PublicKeyEth1Config {
   }
 }
 
-public struct PublicKeyEth1: PublicKey {
+@available(*, deprecated, renamed: "PublicKey", message: "Please use PublicKey instead")
+public typealias PublicKeyEth1 = PublicKey
+
+public struct PublicKey: IPublicKey {
   private let raw: Data
   private let chainCode: Data
   private let depth: UInt8
   private let fingerprint: Data
   private let index: UInt32
   public let network: Network
-  private let config: PublicKeyEth1Config
+  private let config: PublicKeyConfig
   
   init(privateKey: Data, compressed: Bool = false, chainCode: Data, depth: UInt8, fingerprint: Data, index: UInt32, network: Network) throws {
-    self.config = PublicKeyEth1Config(compressed: compressed)
+    self.config = PublicKeyConfig(compressed: compressed)
     guard let context = secp256k1_context_create(UInt32(SECP256K1_CONTEXT_SIGN)) else {
       throw PublicKeyError.internalError
     }
@@ -66,7 +69,7 @@ public struct PublicKeyEth1: PublicKey {
     guard let compressed = compressed else {
       throw PublicKeyError.invalidConfiguration
     }
-    self.config = PublicKeyEth1Config(compressed: compressed)
+    self.config = PublicKeyConfig(compressed: compressed)
     self.raw = publicKey
     self.chainCode = Data()
     self.depth = 0
@@ -76,15 +79,13 @@ public struct PublicKeyEth1: PublicKey {
   }
 }
 
-extension PublicKeyEth1: Key {
+extension PublicKey: IKey {
   public func string() -> String? {
     return self.raw.toHexString()
   }
   
   public func extended() -> String? {
-    guard let alphabet = self.network.alphabet else {
-      return nil
-    }
+    guard let alphabet = self.network.alphabet else { return nil }
     var extendedKey = Data()
     
     extendedKey += Data(self.network.publicKeyPrefix.littleEndian.bytes)
@@ -104,8 +105,34 @@ extension PublicKeyEth1: Key {
   
   public func address() -> Address? {
     switch self.network {
-    case .bitcoin, .litecoin:
-      guard self.raw.count == PublicKeyEth1Constants.compressedKeySize else {
+    case .bitcoin(let format) where format == .segwit || format == .segwitTestnet:
+      guard self.raw.count == PublicKeyConstants.compressedKeySize else { return nil }
+      let publicKey = self.raw
+      let bech = Bech32(encoding: .bech32)
+      let payload = publicKey.ripemd160()
+      guard var words: [UInt8] = try? bech.toWords(data: payload) else { return nil }
+      words.insert(0x00, at: 0)
+      guard let address = try? bech.encode(prefix: self.network.addressPrefix, words: words) else { return nil }
+      return Address(raw: address)
+      
+    case .litecoin:
+      guard self.raw.count == PublicKeyConstants.compressedKeySize else {
+        return nil
+      }
+      guard let alphabet = self.network.alphabet else {
+        return nil
+      }
+      let prefix = Data([self.network.publicKeyHash])
+      let publicKey = self.raw
+      let payload = publicKey.sha256().ripemd160()
+      let checksum = (prefix + payload).sha256().sha256().prefix(4)
+      let data = prefix + payload + checksum
+      guard let stringAddress: String = data.encodeBase58(alphabet: alphabet) else {
+        return nil
+      }
+      return Address(raw: stringAddress)
+    case .bitcoin(let format) where format == .legacy:
+      guard self.raw.count == PublicKeyConstants.compressedKeySize else {
         return nil
       }
       guard let alphabet = self.network.alphabet else {
@@ -121,7 +148,7 @@ extension PublicKeyEth1: Key {
       }
       return Address(raw: stringAddress)
     default:
-      guard self.raw.count == PublicKeyEth1Constants.decompressedKeySize else {
+      guard self.raw.count == PublicKeyConstants.decompressedKeySize else {
         return nil
       }
       let publicKey = self.raw
