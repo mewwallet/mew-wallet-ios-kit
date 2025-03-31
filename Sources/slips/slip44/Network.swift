@@ -21,6 +21,10 @@ public enum Network {
     case segwit
     case segwitTestnet
   }
+  public enum NetworkType {
+    case evm
+    case bitcoin
+  }
   case bitcoin(_ format: Bitcoin)
   case litecoin
   case singularDTV
@@ -53,7 +57,7 @@ public enum Network {
   case akroma
   case iolite
   case ether1
-  case anonymizedId
+  case anonymizedId(_ Network: NetworkType)
   case kovan
   case goerli
   case eth2Withdrawal
@@ -96,7 +100,8 @@ public enum Network {
     case "m/44'/200625'/0'/0":    self = .akroma
     case "m/44'/1171337'/0'/0":   self = .iolite
     case "m/44'/1313114'/0'/0":   self = .ether1
-    case "m/1000'/60'/0'/0":      self = .anonymizedId
+    case "m/1000'/60'/0'/0":      self = .anonymizedId(.evm)
+    case "m/1040'/60'/0'/0":      self = .anonymizedId(.bitcoin)
     case "m/44'/42'/0'/0":        self = .kovan
     case "m/44'/5'/0'/0":         self = .goerli
     case "m/12381/3600":          self = .eth2Withdrawal
@@ -241,7 +246,11 @@ public enum Network {
     case .akroma:                                               return "m/44'/200625'/0'/0"
     case .iolite:                                               return "m/44'/1171337'/0'/0"
     case .ether1:                                               return "m/44'/1313114'/0'/0"
-    case .anonymizedId:                                         return "m/1000'/60'/0'/0"
+    case .anonymizedId(let network):
+      switch network {
+      case .evm:                                                return "m/1000'/60'/0'/0"
+      case .bitcoin:                                            return "m/1040'/60'/0'/0"
+      }
     case .kovan:                                                return "m/44'/42'/0'/0"
     case .goerli:                                               return "m/44'/5'/0'/0"
     case .eth2Withdrawal:                                       return "m/12381/3600"

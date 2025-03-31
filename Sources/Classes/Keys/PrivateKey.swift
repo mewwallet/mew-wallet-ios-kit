@@ -123,16 +123,11 @@ extension PrivateKey: IKey {
 // MARK: - BIP32
 
 extension PrivateKey: BIP32 {
-  public func derived(nodes: [DerivationNode]) throws -> Self {
-    if case .none = self.network {
-      return self
-    }
-    guard nodes.count > 0 else {
-      return self
-    }
-    guard let node = nodes.first else {
-      return self
-    }
+  public func derived(nodes: [DerivationNode], network: Network? = nil) throws -> Self {
+    let network = network ?? self.network
+    if case .none = network { return self }
+    guard nodes.count > 0 else { return self }
+    guard let node = nodes.first else { return self }
     
     let derivingIndex: UInt32
     let derivedPrivateKeyData: Data
@@ -176,10 +171,10 @@ extension PrivateKey: BIP32 {
         depth: self.depth + 1,
         fingerprint: fingerprint,
         index: derivingIndex,
-        network: self.network
+        network: network
     )
     if nodes.count > 1 {
-      return try derivedPrivateKey.derived(nodes: Array(nodes[1 ..< nodes.count]))
+      return try derivedPrivateKey.derived(nodes: Array(nodes[1 ..< nodes.count]), network: network)
     }
     
     return derivedPrivateKey

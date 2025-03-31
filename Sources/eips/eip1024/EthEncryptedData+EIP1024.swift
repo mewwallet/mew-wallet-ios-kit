@@ -141,6 +141,12 @@ extension PrivateKey {
   public func eth_publicKey() throws -> String {
     return try curve25519PublicKeyData().toHexString()
   }
+  
+  /// Create curve25519 public key from Ethereum private key
+  /// - Returns: hex string
+  public func curve25519PublicKeyHex() throws -> String {
+    return try curve25519PublicKeyData().toHexString()
+  }
     
   /// Create curve25519 public key from Ethereum private key
   /// - Returns: base64 encoded string

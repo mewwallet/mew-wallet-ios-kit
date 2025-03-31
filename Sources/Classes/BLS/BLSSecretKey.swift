@@ -85,7 +85,7 @@ extension BLSSecretKey: IKey {
 // MARK: - BIP32
 
 extension BLSSecretKey: BIP32 {
-  public func derived(nodes: [DerivationNode]) throws -> BLSSecretKey {
+  public func derived(nodes: [DerivationNode], network: Network?) throws -> BLSSecretKey {
     if case .none = self.network {
       return self
     }
@@ -100,7 +100,7 @@ extension BLSSecretKey: BIP32 {
                                  index: node.index(),
                                  network: self.network)
     if nodes.count > 0 {
-      return try derivedSK.derived(nodes: nodes)
+      return try derivedSK.derived(nodes: nodes, network: network ?? self.network)
     }
     return derivedSK
   }

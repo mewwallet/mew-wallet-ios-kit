@@ -57,7 +57,7 @@ public final class Wallet<PK: IPrivateKey> {
       derivationPath.append(.nonHardened(index))
     }
     
-    let derivedPrivateKey = try self.privateKey.derived(nodes: derivationPath)
+    let derivedPrivateKey = try self.privateKey.derived(nodes: derivationPath, network: nil)
     return Wallet(privateKey: derivedPrivateKey)
   }
   
@@ -65,7 +65,7 @@ public final class Wallet<PK: IPrivateKey> {
     let network = network ?? self.privateKey.network
     let path = network.path(index: index)
     let derivationPath = try path.derivationPath(checkHardenedEdge: self.privateKey.hardenedEdge)
-    let derivedPrivateKey = try self.privateKey.derived(nodes: derivationPath)
+    let derivedPrivateKey = try self.privateKey.derived(nodes: derivationPath, network: network)
     return Wallet(privateKey: derivedPrivateKey)
   }
 }

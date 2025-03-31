@@ -10,5 +10,5 @@ import Foundation
 
 public protocol BIP32 {
   associatedtype BIPPK
-  func derived(nodes: [DerivationNode]) throws -> BIPPK
+  func derived(nodes: [DerivationNode], network: Network?) throws -> BIPPK
 }
