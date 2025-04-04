@@ -304,8 +304,7 @@ public enum Network {
   
   var wifPrefix: UInt8? {
     switch self {
-    case .bitcoin:
-      return 0x80
+    case .bitcoin:  return 0x80
     case .litecoin: return 0xB0
     default:        return nil
     }

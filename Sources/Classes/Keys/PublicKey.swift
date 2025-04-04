@@ -80,7 +80,7 @@ public struct PublicKey: IPublicKey {
 }
 
 extension PublicKey: IKey {
-  public func string() -> String? {
+  public func string(compressedPublicKey: Bool) -> String? {
     return self.raw.toHexString()
   }
   

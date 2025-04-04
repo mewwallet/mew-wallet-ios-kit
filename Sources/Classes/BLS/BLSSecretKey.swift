@@ -51,6 +51,10 @@ extension BLSSecretKey: IPrivateKey {
     self.network = network
   }
   
+  public init?(wif: String, network: Network) throws {
+    return nil
+  }
+  
   public func publicKey(compressed: Bool? = nil) -> BLSPublicKey? {
     let raw = self.raw
     guard let blsPublicKey = try? raw.blsPublicKey(),
@@ -65,7 +69,7 @@ extension BLSSecretKey: IPrivateKey {
 // MARK: - Key
 
 extension BLSSecretKey: IKey {
-  public func string() -> String? {
+  public func string(compressedPublicKey: Bool) -> String? {
     return self.raw.toHexString()
   }
   

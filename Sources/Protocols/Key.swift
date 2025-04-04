@@ -10,8 +10,14 @@ import Foundation
 
 public protocol IKey {
   var network: Network { get }
-  func string() -> String?
+  func string(compressedPublicKey: Bool) -> String?
   func extended() -> String?
   func data() -> Data
   func address() -> Address?
+}
+
+public extension IKey {
+  func string() -> String? {
+    return self.string(compressedPublicKey: true)
+  }
 }

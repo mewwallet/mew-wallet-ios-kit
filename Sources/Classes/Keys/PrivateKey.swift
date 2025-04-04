@@ -63,6 +63,27 @@ extension PrivateKey: IPrivateKey {
     self.network = network
   }
   
+  public init?(wif: String, network: Network) {
+    guard let alphabet = network.alphabet else { return nil }
+    guard var data = wif.decodeBase58(alphabet: alphabet) else { return nil }
+    
+    let checksum = Data(data.suffix(4))
+    data = data.dropLast(4)
+    let verify = data.sha256().sha256()
+    if data.count == 34, data.last == 0x01 {
+      data = data.dropLast(1)
+    }
+
+    guard Data(verify.prefix(4)) == checksum else { return nil }
+    
+    self.raw = data.dropFirst(1)
+    self.chainCode = Data()
+    self.depth = 0
+    self.fingerprint = Data([0x00, 0x00, 0x00, 0x00])
+    self.index = 0
+    self.network = network
+  }
+  
   public func publicKey(compressed: Bool? = nil) throws -> PublicKey {
     let compressed = compressed ?? self.network.publicKeyCompressed
     let publicKey = try PublicKey(
@@ -81,7 +102,7 @@ extension PrivateKey: IPrivateKey {
 // MARK: - Key
 
 extension PrivateKey: IKey {
-  public func string() -> String? {
+  public func string(compressedPublicKey: Bool) -> String? {
     guard let wifPrefix = self.network.wifPrefix,
           let alphabet = self.network.alphabet else {
       return self.raw.toHexString()
@@ -89,7 +110,9 @@ extension PrivateKey: IKey {
     var data = Data()
     data += Data([wifPrefix])
     data += self.raw
-    data += Data([0x01])
+    if compressedPublicKey {
+      data += Data([0x01])
+    }
     data += data.sha256().sha256().prefix(4)
     return data.encodeBase58(alphabet: alphabet)
   }

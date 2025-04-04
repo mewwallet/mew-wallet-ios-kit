@@ -14,6 +14,7 @@ public protocol IPrivateKey: IKey, BIP32 where BIPPK == Self {
  
   init(seed: Data, network: Network) throws
   init(privateKey: Data, network: Network) throws
+  init?(wif: String, network: Network) throws
   func publicKey(compressed: Bool?) throws -> PK
   var hardenedEdge: Bool { get }
 }
