@@ -10,7 +10,7 @@
 
 import Foundation
 
-public enum BIP39Wordlist {
+public enum BIP39Wordlist: Equatable {
   case chinese_simplified
   case chinese_traditional
   case english

@@ -20,7 +20,7 @@ public enum BIP39Error: Error {
 
 private let BIP39Salt = "mnemonic"
 
-public final class BIP39 {
+public final class BIP39: Equatable {
   private var _entropy: Data?
   lazy public private(set) var entropy: Data? = {
     if self._entropy != nil {
@@ -168,5 +168,13 @@ public final class BIP39 {
     
     let seed = try PKCS5.PBKDF2(password: mnemonicData.bytes, salt: saltData.bytes, iterations: 2048, keyLength: 64, variant: .sha2(.sha512)).calculate()
     return Data(seed)
+  }
+  
+  // MARK: - Equitable
+  
+  public static func == (lhs: BIP39, rhs: BIP39) -> Bool {
+    return lhs._entropy == rhs._entropy &&
+    lhs._mnemonic == rhs._mnemonic &&
+    lhs.language == rhs.language
   }
 }
