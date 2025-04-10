@@ -24,7 +24,7 @@ public protocol EIPQRCode {
 }
 
 extension EIPQRCode where Self: Equatable {
-  public static func == (lhs: EIPQRCode, rhs: EIPQRCode) -> Bool {
+  public static func == (lhs: Self, rhs: Self) -> Bool {
     return lhs.equitable == rhs.equitable
   }
 }
