@@ -71,7 +71,7 @@ public final class BIP39: Equatable {
     self._entropy = entropy
   }
   
-  public func seed(password: String = "") throws -> Data? {
+  public func seed(password: String = "") throws -> Data {
     guard let mnemonic = self.mnemonic else {
       throw BIP39Error.invalidMnemonic
     }
@@ -154,7 +154,7 @@ public final class BIP39: Equatable {
     return entropy
   }
   
-  private func seed(from mnemonic: [String], password: String = "") throws -> Data? {
+  private func seed(from mnemonic: [String], password: String = "") throws -> Data {
     guard self.entropy != nil else {
       throw BIP39Error.invalidEntropy
     }

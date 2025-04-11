@@ -9,16 +9,17 @@
 import Foundation
 
 public final class Wallet<PK: IPrivateKey> {
-  
   // MARK: - Static methods
   
   public static func generate(bitsOfEntropy: Int = 256, language: BIP39Wordlist = .english, network: Network = .ethereum) throws -> (BIP39, Wallet) {
     let bip39 = try BIP39(bitsOfEntropy: bitsOfEntropy, language: language)
-    guard let seed = try bip39.seed() else {
+    do {
+      let seed = try bip39.seed()
+      let wallet = try Wallet(seed: seed, network: network)
+      return (bip39, wallet)
+    } catch {
       throw WalletError.emptySeed
     }
-    let wallet = try Wallet(seed: seed, network: network)
-    return (bip39, wallet)
   }
   
   public static func restore(mnemonic: [String], language: BIP39Wordlist = .english, network: Network = .ethereum) throws -> (BIP39, Wallet) {
@@ -28,11 +29,13 @@ public final class Wallet<PK: IPrivateKey> {
   }
   
   public static func restore(bip39: BIP39, network: Network = .ethereum) throws -> Wallet {
-    guard let seed = try bip39.seed() else {
+    do {
+      let seed = try bip39.seed()
+      let wallet = try Wallet(seed: seed, network: network)
+      return wallet
+    } catch {
       throw WalletError.emptySeed
     }
-    let wallet = try Wallet(seed: seed, network: network)
-    return wallet
   }
   
   // MARK: - Properties
@@ -69,3 +72,11 @@ public final class Wallet<PK: IPrivateKey> {
     return Wallet(privateKey: derivedPrivateKey)
   }
 }
+
+extension Wallet: Equatable where PK: Equatable {
+  public static func == (lhs: Wallet<PK>, rhs: Wallet<PK>) -> Bool {
+    lhs.privateKey == rhs.privateKey
+  }
+}
+
+extension Wallet: Sendable where PK: Sendable { }

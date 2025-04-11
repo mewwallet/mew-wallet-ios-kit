@@ -78,7 +78,7 @@ fileprivate struct WIFTests {
   func valid(vector: TestVector) async throws {
     let bip39 = BIP39(mnemonic: vector.mnemonic)
     
-    let seed = try #require(try bip39.seed())
+    let seed = try bip39.seed()
     let wallet = try Wallet<PrivateKey>(seed: seed, network: .bitcoin(.segwit))
     let derived = try wallet.derive(vector.derivationPath)
     
