@@ -113,17 +113,17 @@ struct Bech32Tests {
     let bech32 = Bech32(encoding: vector.encoding)
     
     if !vector.hex.isEmpty {
-      let words = try #require(try bech32.toWords(bytes: Data(hex: vector.hex).bytes))
-      let bytes = try #require(try bech32.fromWords(words: vector.words))
+      let words = try bech32.toWords(bytes: Data(hex: vector.hex).bytes)
+      let bytes = try bech32.fromWords(words: vector.words)
       
       #expect(words == vector.words)
       #expect(bytes.toHexString() == vector.hex)
     }
     
-    let encoded = try #require(try bech32.encode(prefix: vector.prefix, words: vector.words, limit: vector.limit))
+    let encoded = try bech32.encode(prefix: vector.prefix, words: vector.words, limit: vector.limit)
     #expect(encoded == vector.string.lowercased())
     
-    let decoded = try #require(try bech32.decode(vector.string, limit: vector.limit))
+    let decoded = try bech32.decode(vector.string, limit: vector.limit)
     #expect(vector.prefix.lowercased() == decoded.prefix)
     #expect(vector.words == decoded.words)
     

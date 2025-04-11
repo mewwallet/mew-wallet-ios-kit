@@ -16,7 +16,7 @@ private let HMACKeyData: [UInt8] = [0x42, 0x69, 0x74, 0x63, 0x6F, 0x69, 0x6E, 0x
 @available(*, deprecated, renamed: "PrivateKey", message: "Please use PrivateKey instead")
 public typealias PrivateKeyEth1 = PrivateKey
 
-public struct PrivateKey {
+public struct PrivateKey: Equatable, Sendable {
   private let raw: Data
   private let chainCode: Data
   private let depth: UInt8

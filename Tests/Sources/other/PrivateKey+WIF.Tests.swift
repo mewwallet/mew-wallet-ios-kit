@@ -79,8 +79,8 @@ fileprivate struct WIFTests {
     let bip39 = BIP39(mnemonic: vector.mnemonic)
     
     let seed = try #require(try bip39.seed())
-    let wallet = try #require(try Wallet<PrivateKey>(seed: seed, network: .bitcoin(.segwit)))
-    let derived = try #require(try wallet.derive(vector.derivationPath))
+    let wallet = try Wallet<PrivateKey>(seed: seed, network: .bitcoin(.segwit))
+    let derived = try wallet.derive(vector.derivationPath)
     
     let privateKey = try #require(derived.privateKey.string())
     let address = try #require(derived.privateKey.address())

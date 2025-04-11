@@ -98,8 +98,8 @@ fileprivate struct BIP84Tests {
     let bip39 = BIP39(mnemonic: vector.mnemonic)
     
     let seed = try #require(try bip39.seed())
-    let wallet = try #require(try Wallet<PrivateKey>(seed: seed, network: .bitcoin(.segwit)))
-    let derived = try #require(try wallet.derive(vector.derivationPath))
+    let wallet = try Wallet<PrivateKey>(seed: seed, network: .bitcoin(.segwit))
+    let derived = try wallet.derive(vector.derivationPath)
     
     
     let extendedPublicKey = try #require(derived.privateKey.publicKey().extended())
@@ -118,10 +118,10 @@ fileprivate struct BIP84Tests {
   @Test("Test Enkrypt generation")
   func enkrypt() async throws {
     let raw = Data(hex: "0x021aa21d5f77b1be591d0a0a847cb7412a344f4e768b93d55b3eeab3b7e8a4a252")
-    let publicKey0 = try #require(try PublicKey(publicKey: raw, index: 0, network: .bitcoin(.segwit)))
+    let publicKey0 = try PublicKey(publicKey: raw, index: 0, network: .bitcoin(.segwit))
     #expect(publicKey0.address() == Address(raw: "bc1qnjmf6vcjpyru5t8y2936260mrqa305qactwds2"))
     
-    let publicKey1 = try #require(try PublicKey(publicKey: raw, index: 0, network: .bitcoin(.segwitTestnet)))
+    let publicKey1 = try PublicKey(publicKey: raw, index: 0, network: .bitcoin(.segwitTestnet))
     #expect(publicKey1.address() == Address(raw: "tb1qnjmf6vcjpyru5t8y2936260mrqa305qajd47te"))
   }
   

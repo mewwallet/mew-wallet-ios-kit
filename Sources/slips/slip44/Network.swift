@@ -8,20 +8,26 @@
 
 import Foundation
 
-public enum NetworkPathProviderType {
+public enum NetworkPathProviderType: Equatable, Sendable {
   case prefix
   case suffix
 }
 
-public typealias NetworkPathProvider = (_ type: NetworkPathProviderType, _ index: UInt32?) -> String
+open class NetworkPathProvider: Equatable, @unchecked Sendable {
+  public static func == (lhs: NetworkPathProvider, rhs: NetworkPathProvider) -> Bool {
+    return false
+  }
+  
+  open func path(_ type: NetworkPathProviderType, _ index: UInt32?) -> String { return "" }
+}
 
-public enum Network {
-  public enum Bitcoin {
+public enum Network: Equatable, Sendable {
+  public enum Bitcoin: Equatable, Sendable {
     case legacy
     case segwit
     case segwitTestnet
   }
-  public enum NetworkType {
+  public enum NetworkType: Equatable, Sendable {
     case evm
     case bitcoin
   }
@@ -160,7 +166,7 @@ public enum Network {
     switch self {
     case let .custom(_, path, pathProvider, _):
       if let pathProvider = pathProvider {
-        return pathProvider(.prefix, index) + pathProvider(.suffix, nil)
+        return pathProvider.path(.prefix, index) + pathProvider.path(.suffix, nil)
       } else if let index = index {
         return path.appending("/\(index)")
       } else {
@@ -185,7 +191,7 @@ public enum Network {
     switch self {
     case let .custom(_, path, pathProvider, _):
       if let pathProvider = pathProvider {
-        return pathProvider(.prefix, nil)
+        return pathProvider.path(.prefix, nil)
       } else {
         return path
       }
@@ -198,7 +204,7 @@ public enum Network {
     switch self {
     case let .custom(_, _, pathProvider, _):
       if let pathProvider = pathProvider {
-        return pathProvider(.suffix, nil)
+        return pathProvider.path(.suffix, nil)
       } else {
         return ""
       }
