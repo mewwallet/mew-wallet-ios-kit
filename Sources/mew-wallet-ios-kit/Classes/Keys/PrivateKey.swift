@@ -202,4 +202,12 @@ extension PrivateKey: BIP32 {
     
     return derivedPrivateKey
   }
+  
+  public func derive(_ network: Network? = nil, index: UInt32? = nil) throws -> Wallet<Self> {
+    let network = network ?? self.network
+    let path = network.path(index: index)
+    let derivationPath = try path.derivationPath(checkHardenedEdge: self.hardenedEdge)
+    let derivedPrivateKey = try self.derived(nodes: derivationPath, network: network)
+    return Wallet(privateKey: derivedPrivateKey)
+  }
 }
