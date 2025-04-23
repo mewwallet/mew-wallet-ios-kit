@@ -20,7 +20,7 @@ public enum BIP39Error: Error {
 
 private let BIP39Salt = "mnemonic"
 
-public final class BIP39: Equatable {
+public final class BIP39: Equatable, @unchecked Sendable {
   private var _entropy: Data?
   lazy public private(set) var entropy: Data? = {
     if self._entropy != nil {
