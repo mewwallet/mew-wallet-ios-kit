@@ -20,12 +20,12 @@ public protocol EIPQRCode {
   var functionName: String? { get }
   var function: ABI.Element.Function? { get }
   var parameters: [EIPQRCodeParameter] { get }
-  var equitable: EquatableEIPQRCode { get }
+  var equatable: EquatableEIPQRCode { get }
 }
 
 extension EIPQRCode where Self: Equatable {
   public static func == (lhs: Self, rhs: Self) -> Bool {
-    return lhs.equitable == rhs.equitable
+    return lhs.equatable == rhs.equatable
   }
 }
 

@@ -7,52 +7,96 @@
 //
 
 import Foundation
-import Quick
-import Nimble
+import Testing
 import BigInt
 @testable import mew_wallet_ios_kit
 
-class RawQRCodeTests: QuickSpec {
-  lazy var testVectors: [String] = {
-    return [
-      "0xcccc00000000000000000000000000000000cccc",
-      "cccc00000000000000000000000000000000cccc",
-      "0xeeee00000000000000000000000000000000eee",
-      "0xcccc00000000000000000000000000000000cccQ",
-      "0xdeadbeef",
-    ]
-  }()
+fileprivate struct TestVector: @unchecked Sendable {
+  let raw: String
+  let chainID: BigInt?
+  let targetAddress: Address?
+  let recipientAddress: Address?
+  let value: BigUInt?
+  let tokenValue: BigUInt?
+  let gasLimit: BigUInt?
+  let data: Data?
+  let functionName: String?
+  let function: ABI.Element.Function?
+  let parameters: [EIPQRCodeParameter]
+  
+  init(raw: String) {
+    self.raw = raw
+    self.chainID = nil
+    self.targetAddress = nil
+    self.recipientAddress = nil
+    self.value = nil
+    self.tokenValue = nil
+    self.gasLimit = nil
+    self.data = nil
+    self.functionName = nil
+    self.function = nil
+    self.parameters = []
+  }
+  
+  init(raw: String,
+       chainID: BigInt?,
+       targetAddress: Address?,
+       recipientAddress: Address?,
+       value: BigUInt?,
+       tokenValue: BigUInt?,
+       gasLimit: BigUInt?,
+       data: Data?,
+       functionName: String?,
+       function: ABI.Element.Function?,
+       parameters: [EIPQRCodeParameter]) {
+    self.raw = raw
+    self.chainID = chainID
+    self.targetAddress = targetAddress
+    self.recipientAddress = recipientAddress
+    self.value = value
+    self.tokenValue = tokenValue
+    self.gasLimit = gasLimit
+    self.data = data
+    self.functionName = functionName
+    self.function = function
+    self.parameters = parameters
+  }
+  
+  fileprivate static let valid: [TestVector] = [
+    .init(raw: "0xcccc00000000000000000000000000000000cccc", chainID: nil, targetAddress: Address(raw: "0xcccc00000000000000000000000000000000cccc"), recipientAddress: nil, value: nil, tokenValue: nil, gasLimit: nil, data: nil, functionName: nil, function: nil, parameters: []),
+    .init(raw: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", chainID: nil, targetAddress: Address(raw: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"), recipientAddress: nil, value: nil, tokenValue: nil, gasLimit: nil, data: nil, functionName: nil, function: nil, parameters: [])
+  ]
+
+  fileprivate static let invalid: [TestVector] = [
+    .init(raw: "cccc00000000000000000000000000000000cccc"),
+    .init(raw: "0xeeee00000000000000000000000000000000eee"),
+    .init(raw: "0xcccc00000000000000000000000000000000cccQ"),
+    .init(raw: "0xdeadbeef")
+  ]
+}
+
+
+@Suite("RawQRCode Tests")
+fileprivate struct RawQRCodeTests {
+  @Test("Test valid cases", arguments: TestVector.valid)
+  func valid(vector: TestVector) async throws {
+    let code = try #require(RawQRCode(vector.raw))
     
-  override func spec() {
-    describe("RawQRCode parsing") {
-      it("should parse link from test vector 1 of (\(self.testVectors.count)") {
-        let code = RawQRCode(self.testVectors[0])
-        expect(code).toNot(beNil())
-        expect(code!.targetAddress).toNot(beNil())
-        expect(code!.targetAddress).to(equal(Address(ethereumAddress: "0xcccc00000000000000000000000000000000cccc")))
-        expect(code!.recipientAddress).to(beNil())
-        expect(code!.recipientAddress).to(beNil())
-        expect(code!.value).to(beNil())
-        expect(code!.tokenValue).to(beNil())
-        expect(code!.gasLimit).to(beNil())
-        expect(code!.data).to(beNil())
-        expect(code!.data).to(beNil())
-        expect(code!.functionName).to(beNil())
-        expect(code!.function).to(beNil())
-        expect(code!.parameters).to(beEmpty())
-      }
-      it("should parse link from test vector 2 of (\(self.testVectors.count)") {
-        let code = RawQRCode(self.testVectors[1])
-        expect(code).to(beNil())
-      }
-      it("should parse link from test vector 3 of (\(self.testVectors.count)") {
-        let code = RawQRCode(self.testVectors[2])
-        expect(code).to(beNil())
-      }
-      it("should parse link from test vector 4 of (\(self.testVectors.count)") {
-        let code = RawQRCode(self.testVectors[3])
-        expect(code).to(beNil())
-      }
-    }
+    #expect(code.chainID == vector.chainID)
+    #expect(code.targetAddress == vector.targetAddress)
+    #expect(code.recipientAddress == vector.recipientAddress)
+    #expect(code.value == vector.value)
+    #expect(code.tokenValue == vector.tokenValue)
+    #expect(code.gasLimit == vector.gasLimit)
+    #expect(code.data == vector.data)
+    #expect(code.functionName == vector.functionName)
+    #expect(code.function == vector.function)
+    #expect(code.parameters == vector.parameters)
+  }
+  
+  @Test("Test invalid invalid cases", arguments: TestVector.invalid)
+  func invalid(vector: TestVector) async throws {
+    let code = RawQRCode(vector.raw)
+    #expect(code == nil)
   }
 }

@@ -119,10 +119,10 @@ public enum Network: Equatable, Sendable {
   
   public var name: String {
     switch self {
-    case .bitcoin(.legacy):                                     return "Bitcoin"
-    case .bitcoin(.segwit):                                     return "Bitcoin SegWit"
-    case .bitcoin(.legacyTestnet):                              return "Bitcoin testnet"
-    case .bitcoin(.segwitTestnet):                              return "Bitcoin SegWit testnet"
+    case .bitcoin(.legacy):                                                   return "Bitcoin"
+    case .bitcoin(.segwit):                                                   return "Bitcoin SegWit"
+    case .bitcoin(.legacyTestnet):                                            return "Bitcoin testnet"
+    case .bitcoin(.segwitTestnet):                                            return "Bitcoin SegWit testnet"
     case .litecoin:                                                           return "Litecoin"
     case .singularDTV:                                                        return "SingularDTV"
     case .expanse:                                                            return "Expanse"

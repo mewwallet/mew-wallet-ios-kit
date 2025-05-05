@@ -27,6 +27,12 @@ extension PSBT {
     ///
     /// Each output may contain redeem scripts, witness scripts, or other commitments.
     public let outputs: [PSBT.Output]
+    
+    public init(tx: Bitcoin.Transaction, inputs: [PSBT.Input], outputs: [PSBT.Output]) {
+      self.tx = tx
+      self.inputs = inputs
+      self.outputs = outputs
+    }
   }
 }
 

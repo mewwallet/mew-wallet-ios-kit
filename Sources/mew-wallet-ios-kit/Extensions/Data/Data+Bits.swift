@@ -47,7 +47,7 @@ extension Data {
 private struct BitReader {
   private let data: [UInt8]
   
-  init (data: Data) {
+  init(data: Data) {
     self.data = data.bytes
   }
   

@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Foundation
 import Testing
 @testable import mew_wallet_ios_kit
 

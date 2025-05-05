@@ -55,7 +55,7 @@ fileprivate struct PSBTDecoderTests {
     let decoder = PSBT.Decoder()
     let data = try #require(Data(base64Encoded: base64))
     #expect(throws: DecodingError.self, performing: {
-      let tx = try decoder.decode(PSBT.Transaction.self, from: data)
+      _ = try decoder.decode(PSBT.Transaction.self, from: data)
     })
   }
 }

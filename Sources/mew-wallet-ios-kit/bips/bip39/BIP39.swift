@@ -170,7 +170,7 @@ public final class BIP39: Equatable, @unchecked Sendable {
     return Data(seed)
   }
   
-  // MARK: - Equitable
+  // MARK: - Equatable
   
   public static func == (lhs: BIP39, rhs: BIP39) -> Bool {
     return lhs._entropy == rhs._entropy &&

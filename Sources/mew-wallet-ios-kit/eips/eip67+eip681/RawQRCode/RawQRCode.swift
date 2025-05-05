@@ -24,7 +24,7 @@ public struct RawQRCode: EIPQRCode & Equatable {
   public var function: ABI.Element.Function? { return nil }
   public var parameters: [EIPQRCodeParameter] = []
   public var data: Data? { return nil }
-  public var equitable: EquatableEIPQRCode { .raw(self) }
+  public var equatable: EquatableEIPQRCode { .raw(self) }
   
   public init(_ targetAddress: Address) {
     self.targetAddress = targetAddress
@@ -59,7 +59,7 @@ private struct RawQRCodeParser {
           let match = matches.first else { return nil }
     
     guard let target = match.rawQRCodeTarget(in: encoding),
-          let targetAddress = Address(ethereumAddress: target) else { return nil }
+          let targetAddress = Address(ethereumAddress: target) ?? Address(bitcoinAddress: target) else { return nil }
     
     return RawQRCode(targetAddress)
   }

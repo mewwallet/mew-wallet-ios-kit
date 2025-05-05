@@ -24,7 +24,7 @@ public struct EIP681Code: EIPQRCode & Equatable {
   public var function: ABI.Element.Function?
   public var parameters: [EIPQRCodeParameter] = []
   public var data: Data? { return nil }
-  public var equitable: EquatableEIPQRCode { .eip681(self) }
+  public var equatable: EquatableEIPQRCode { .eip681(self) }
   
   public init(_ targetAddress: Address) {
     self.targetAddress = targetAddress

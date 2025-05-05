@@ -49,6 +49,47 @@ public struct Address: CustomDebugStringConvertible, Sendable {
     self._address = address
   }
   
+  public init?(bitcoinAddress: String) {
+    let alphabet = Network.bitcoin(.legacy).alphabet
+    
+    // Try Base58Check decode
+    if let alphabet, let decoded = bitcoinAddress.decodeBase58(alphabet: alphabet), decoded.count == 25 {
+      let payload = decoded.prefix(21)
+      let checksum = decoded.suffix(4)
+      let calculated: Data = payload.hash256().prefix(4)
+      
+      if checksum == calculated {
+        self._address = bitcoinAddress
+        return
+      }
+    }
+    
+    // Bech32 / Bech32m (SegWit)
+    for encoding in [Bech32.Encoding.bech32, .bech32m] {
+      let bech32 = Bech32(encoding: encoding)
+      do {
+        let (hrp, words) = try bech32.decode(bitcoinAddress)
+        guard (hrp == "bc" || hrp == "tb" || hrp == "bcrt"), let witnessVersion = words.first else { continue }
+        
+        let witnessProgram = try bech32.fromWords(words: Array(words.dropFirst()))
+        
+        switch encoding {
+        case .bech32:
+          guard witnessVersion == 0 else { continue } // BIP173
+        case .bech32m:
+          guard witnessVersion > 0 else { continue } // BIP350
+        }
+        
+        guard witnessProgram.count == 20 || witnessProgram.count == 32 else { continue }
+        
+        self._address = bitcoinAddress
+        return
+      } catch {}
+    }
+    
+    return nil
+  }
+  
   public var debugDescription: String {
     return self._address
   }
