@@ -49,7 +49,9 @@ let package = Package(
     // Bitcoin target
     .target(
       name: "mew-wallet-ios-kit-bitcoin",
-      dependencies: [],
+      dependencies: [
+        "CryptoSwift"
+      ],
       path: "Sources/mew-wallet-ios-kit-bitcoin"
     ),
     

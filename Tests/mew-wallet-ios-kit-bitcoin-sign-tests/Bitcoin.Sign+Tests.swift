@@ -29,7 +29,10 @@ fileprivate struct EncoderTransactionOutputTests {
     let decoder = PSBT.Decoder()
     let data = try #require(Data(base64Encoded: psbt))
     let tx = try decoder.decode(PSBT.Transaction.self, from: data)
-    let signedTX = try tx.sign(key: privateKey)
+    
+    try #expect(tx.fee == 4999999955)
+    
+    let signedTX: Data = try tx.sign(key: privateKey)
     
     #expect(signedTX.toHexString() == expected)
   }

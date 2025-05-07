@@ -31,13 +31,13 @@ extension PSBT.Transaction {
   /// - Taproot (Witness v1) inputs
   ///
   /// - Parameter key: The private key to use for signing all valid inputs.
-  /// - Returns: A fully signed `Bitcoin.Transaction`, serialized as raw `Data`.
+  /// - Returns: A fully signed `Bitcoin.Transaction`.
   /// - Throws:
   ///   - `Bitcoin.SignError.outputsNotMatch` if input/output indices are invalid or mismatched.
   ///   - `Bitcoin.SignError.notSupported` for unsupported script types.
   ///   - `Bitcoin.SignError.signingError` if signature generation fails.
   ///   - `Bitcoin.SignError` if a specific signing error occurs.
-  public func sign(key: PrivateKey) throws(Bitcoin.SignError) -> Data {
+  public func sign(key: PrivateKey) throws(Bitcoin.SignError) -> Bitcoin.Transaction {
     guard self.inputs.count == self.tx.inputs.count else {
       throw Bitcoin.SignError.outputsNotMatch
     }
@@ -76,10 +76,46 @@ extension PSBT.Transaction {
           sigHash: input.sigHash ?? .all
         )
       }
-      // Serialize the fully signed transaction
-      return try Bitcoin.Encoder().encode(transaction)
+      // Return the fully signed transaction
+      return transaction
     } catch let error as Bitcoin.SignError {
       throw error
+    } catch {
+      throw Bitcoin.SignError.signingError
+    }
+  }
+  
+  /// Signs all applicable inputs in the PSBT (Partially Signed Bitcoin Transaction) using the provided private key.
+  ///
+  /// This method processes each input in the PSBT and attempts to sign it using the standard BIP143 or legacy signing rules,
+  /// depending on the type of UTXO and script.
+  ///
+  /// Only non-multisig inputs using either Base (legacy P2PKH/P2SH) or WitnessV0 (P2WPKH/P2SH-P2WPKH) signature versions are supported.
+  /// Multisignature, Taproot, and complex script inputs are not supported at this time.
+  ///
+  /// If an input is already finalized (i.e., contains a `finalScriptSig`), it will be skipped without error.
+  ///
+  /// ### Supported input formats:
+  /// - `non_witness_utxo`: Full previous transaction. Used for legacy P2PKH or nested P2SH.
+  /// - `witness_utxo`: Compact form containing just the UTXO output. Used for native SegWit (P2WPKH).
+  /// - `redeem_script` / `witness_script`: Optional scripts for P2SH or P2WSH inputs, respectively.
+  ///
+  /// ### Unsupported scenarios:
+  /// - Inputs without `non_witness_utxo`, `witness_utxo`, or `final_scriptSig`
+  /// - Multisig or complex script inputs
+  /// - Taproot (Witness v1) inputs
+  ///
+  /// - Parameter key: The private key to use for signing all valid inputs.
+  /// - Returns: A fully signed `Bitcoin.Transaction`, serialized as raw `Data`.
+  /// - Throws:
+  ///   - `Bitcoin.SignError.outputsNotMatch` if input/output indices are invalid or mismatched.
+  ///   - `Bitcoin.SignError.notSupported` for unsupported script types.
+  ///   - `Bitcoin.SignError.signingError` if signature generation fails.
+  ///   - `Bitcoin.SignError` if a specific signing error occurs.
+  public func sign(key: PrivateKey) throws(Bitcoin.SignError) -> Data {
+    do {
+      let result: Bitcoin.Transaction = try self.sign(key: key)
+      return try Bitcoin.Encoder().encode(result)
     } catch {
       throw Bitcoin.SignError.signingError
     }

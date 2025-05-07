@@ -6,6 +6,9 @@
 //
 
 import Foundation
+#if DEBUG
+import CryptoSwift
+#endif
 
 extension PSBT {
   /// Represents a fully structured Partially Signed Bitcoin Transaction (PSBT).
@@ -64,3 +67,21 @@ extension PSBT.Transaction: Codable {
     try container.encode(outputs, forKey: .outputs)
   }
 }
+
+#if DEBUG
+extension PSBT.Transaction {
+  /// Pretty-prints the transaction in JSON format, useful for debugging.
+  public func _prettyPrint() -> String {
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = [.prettyPrinted]
+    encoder.dataEncodingStrategy = .custom({ data, encoder in
+      var container = encoder.singleValueContainer()
+      try container.encode(data.toHexString())
+    })
+    guard let encoded = try? encoder.encode(self) else {
+      return "<failed>"
+    }
+    return String(data: encoded, encoding: .utf8) ?? "<failed>"
+  }
+}
+#endif
