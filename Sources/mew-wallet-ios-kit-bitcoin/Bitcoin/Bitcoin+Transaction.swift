@@ -6,6 +6,9 @@
 //
 
 import Foundation
+#if DEBUG
+import CryptoSwift
+#endif
 
 extension Bitcoin {
   /// A representation of a Bitcoin transaction, including inputs, outputs, version, and locktime.
