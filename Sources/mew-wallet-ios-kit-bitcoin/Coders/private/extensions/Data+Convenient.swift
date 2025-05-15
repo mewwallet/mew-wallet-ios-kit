@@ -83,8 +83,8 @@ extension Data {
   internal func readLE<T: FixedWidthInteger>(_ cursor: inout Index) throws(DataReaderError) -> T {
     let size = MemoryLayout<T>.size
     guard cursor + size <= self.endIndex else { throw DataReaderError.outOfBounds }
-    let newCursor = index(cursor, offsetBy: size-1)
-    let result: T = try self[cursor...newCursor].readLE()
+    let newCursor = index(cursor, offsetBy: size)
+    let result: T = try self[cursor..<newCursor].readLE()
     cursor = newCursor
     return result
   }
