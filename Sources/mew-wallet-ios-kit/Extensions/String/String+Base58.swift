@@ -8,6 +8,7 @@
 
 import Foundation
 import BigInt
+import CryptoSwift
 
 extension String {
   func decodeBase58(alphabet: String) -> Data? {
@@ -29,7 +30,7 @@ extension String {
       j *= radix
     }
     
-    let bytes = result.data.bytes
+    let bytes = result.data.byteArray
     var prefixData = Data()
     
     for _ in 0 ..< byteString.prefix(while: { i in i == alphabetBytes[0] }).count {

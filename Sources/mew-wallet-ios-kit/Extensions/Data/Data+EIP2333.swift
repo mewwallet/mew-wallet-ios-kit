@@ -58,7 +58,7 @@ extension Data {
     guard self.count == 32 else {
       throw EIP2333Error.wrongSize
     }
-    let okm = try HKDF(password: self.bytes, salt: salt.bytes, info: nil, keyLength: LAMPORT_KEY_SIZE, variant: .sha2(.sha256)).calculate()
+    let okm = try HKDF(password: self.byteArray, salt: salt.byteArray, info: nil, keyLength: LAMPORT_KEY_SIZE, variant: .sha2(.sha256)).calculate()
     return okm.chunked(into: LAMPORT_CHUNK_SIZE).map({Data($0)})
   }
 }

@@ -8,6 +8,7 @@
 
 import Foundation
 import BigInt
+import CryptoSwift
 
 enum TransactionSignatureError: Error {
   case invalidSignature
@@ -66,9 +67,9 @@ internal struct TransactionSignature: CustomDebugStringConvertible {
   }
 
   init(r: String, s: String, v: String, chainID: BigInt? = nil, normalized: Bool = false) throws {
-    self.r = BigInt(Data(hex: r).bytes).toRLP()
-    self.s = BigInt(Data(hex: s).bytes).toRLP()
-    self.v = BigInt(Data(hex: v).bytes).toRLP()
+    self.r = BigInt(Data(hex: r).byteArray).toRLP()
+    self.s = BigInt(Data(hex: s).byteArray).toRLP()
+    self.v = BigInt(Data(hex: v).byteArray).toRLP()
     self.signatureYParity = self.v
 
     self.chainID = chainID ?? BigInt()

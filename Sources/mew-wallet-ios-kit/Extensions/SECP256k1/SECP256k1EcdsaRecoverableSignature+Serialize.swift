@@ -8,11 +8,12 @@
 
 import Foundation
 import mew_wallet_ios_secp256k1
+import CryptoSwift
 
 extension secp256k1_ecdsa_recoverable_signature {
   
   package mutating func serialized(context: OpaquePointer/*secp256k1_context*/) -> Data? {
-    var serialized = Data(repeating: 0x00, count: 64).bytes
+    var serialized = Data(repeating: 0x00, count: 64).byteArray
     // swiftlint:disable:next identifier_name
     var v: Int32 = 0
 

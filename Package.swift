@@ -24,7 +24,7 @@ let package = Package(
     )
   ],
   dependencies: [
-    .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", .upToNextMajor(from: "1.4.2")),
+    .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", .upToNextMajor(from: "1.9.0")),
     .package(url: "https://github.com/attaswift/BigInt.git", from: "5.5.0"),
     .package(url: "https://github.com/mewwallet/mew-wallet-ios-secp256k1.git", exact: "1.0.4"),
     .package(url: "https://github.com/mewwallet/bls-eth-swift.git", exact: "1.0.2"),
