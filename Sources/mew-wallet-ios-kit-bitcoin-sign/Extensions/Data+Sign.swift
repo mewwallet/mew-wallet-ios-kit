@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CryptoSwift
 import mew_wallet_ios_kit
 import mew_wallet_ios_secp256k1
 import mew_wallet_ios_kit_bitcoin
@@ -56,8 +57,8 @@ extension Data {
 
     var counter: UInt32 = 2
     // Hash to sign
-    var message = self.bytes
-    var privateKey = key.data().bytes
+    var message = self.byteArray
+    var privateKey = key.data().byteArray
     var signature = secp256k1_ecdsa_signature()
     var extraEntropy = [UInt8](repeating: 0, count: SignatureConstants.extraEntropyLength)
     

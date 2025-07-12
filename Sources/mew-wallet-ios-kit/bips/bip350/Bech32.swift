@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CryptoSwift
 
 /// A structure for Bech32 encoding and decoding.
 public struct Bech32: Sendable {
@@ -102,7 +103,7 @@ public struct Bech32: Sendable {
   /// - Throws: Any conversion-related errors.
   /// - Returns: A Data object containing the 5-bit words.
   public func toWords(data: Data) throws(Bech32.Error) -> Data {
-    let bytes = try toWords(bytes: data.bytes)
+    let bytes = try toWords(bytes: data.byteArray)
     return Data(bytes)
   }
   
@@ -112,7 +113,7 @@ public struct Bech32: Sendable {
   /// - Throws: Any conversion-related errors.
   /// - Returns: An array of UInt8 representing 5-bit words.
   public func toWords(data: Data) throws(Bech32.Error) -> [UInt8] {
-    try toWords(bytes: data.bytes)
+    try toWords(bytes: data.byteArray)
   }
   
   /// Converts an array of 8-bit bytes to an array of 5-bit words.

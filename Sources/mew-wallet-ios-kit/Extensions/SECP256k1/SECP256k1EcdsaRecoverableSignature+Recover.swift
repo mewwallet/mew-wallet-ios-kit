@@ -8,12 +8,13 @@
 
 import Foundation
 import mew_wallet_ios_secp256k1
+import CryptoSwift
 
 extension secp256k1_ecdsa_recoverable_signature {
   mutating func recoverPublicKey(from hash: Data, compressed: Bool, context: OpaquePointer /*secp256k1_context*/) -> Data? {
     guard hash.count == 32 else { return nil }
     var publicKey = secp256k1_pubkey()
-    var hashBytes = hash.bytes
+    var hashBytes = hash.byteArray
         
     let result = secp256k1_ecdsa_recover(context, &publicKey, &self, &hashBytes)
     

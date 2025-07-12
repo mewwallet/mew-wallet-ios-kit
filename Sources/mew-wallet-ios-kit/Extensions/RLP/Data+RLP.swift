@@ -7,10 +7,11 @@
 //
 
 import Foundation
+import CryptoSwift
 
 extension Data: RLP {
   func rlpEncode(offset: UInt8? = nil) -> Data? {
-    if self.count == 1 && self.bytes[0] < 0x80 {
+    if self.count == 1 && self.byteArray[0] < 0x80 {
       return self
     }
     

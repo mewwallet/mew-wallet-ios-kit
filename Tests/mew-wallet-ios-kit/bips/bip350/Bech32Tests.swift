@@ -7,6 +7,7 @@
 
 import Foundation
 import Testing
+import CryptoSwift
 @testable import mew_wallet_ios_kit
 
 fileprivate struct ValidTestVector {
@@ -113,7 +114,7 @@ fileprivate struct Bech32Tests {
     let bech32 = Bech32(encoding: vector.encoding)
     
     if !vector.hex.isEmpty {
-      let words = try bech32.toWords(bytes: Data(hex: vector.hex).bytes)
+      let words = try bech32.toWords(bytes: Data(hex: vector.hex).byteArray)
       let bytes = try bech32.fromWords(words: vector.words)
       
       #expect(words == vector.words)

@@ -7,6 +7,7 @@
 
 import Foundation
 import BigInt
+import CryptoSwift
 
 public final class EIP1559Transaction: Transaction {
   internal var _maxPriorityFeePerGas: BigInt
@@ -100,11 +101,11 @@ public final class EIP1559Transaction: Transaction {
     accessList: [AccessList]?,
     chainID: Data? = nil
   ) throws {
-    let nonce = BigInt(Data(hex: nonce.stringWithAlignedHexBytes()).bytes)
-    let maxPriorityFeePerGas = BigInt(Data(hex: maxPriorityFeePerGas.stringWithAlignedHexBytes()).bytes)
-    let maxFeePerGas = BigInt(Data(hex: maxFeePerGas.stringWithAlignedHexBytes()).bytes)
-    let gasLimit = BigInt(Data(hex: gasLimit.stringWithAlignedHexBytes()).bytes)
-    let value = BigInt(Data(hex: value.stringWithAlignedHexBytes()).bytes)
+    let nonce = BigInt(Data(hex: nonce.stringWithAlignedHexBytes()).byteArray)
+    let maxPriorityFeePerGas = BigInt(Data(hex: maxPriorityFeePerGas.stringWithAlignedHexBytes()).byteArray)
+    let maxFeePerGas = BigInt(Data(hex: maxFeePerGas.stringWithAlignedHexBytes()).byteArray)
+    let gasLimit = BigInt(Data(hex: gasLimit.stringWithAlignedHexBytes()).byteArray)
+    let value = BigInt(Data(hex: value.stringWithAlignedHexBytes()).byteArray)
     if let chainID = chainID {
       self.init(
         nonce: nonce,

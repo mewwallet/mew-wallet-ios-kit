@@ -7,6 +7,7 @@
 
 import Foundation
 import BigInt
+import CryptoSwift
 
 public struct ZKSync {
   struct EIP712Message {
@@ -219,11 +220,11 @@ public struct ZKSync {
       chainID: Data? = nil,
       meta: Meta = Meta()
     ) throws {
-      let nonce = BigInt(Data(hex: nonce.stringWithAlignedHexBytes()).bytes)
-      let maxPriorityFeePerGas = BigInt(Data(hex: maxPriorityFeePerGas.stringWithAlignedHexBytes()).bytes)
-      let maxFeePerGas = BigInt(Data(hex: maxFeePerGas.stringWithAlignedHexBytes()).bytes)
-      let gasLimit = BigInt(Data(hex: gasLimit.stringWithAlignedHexBytes()).bytes)
-      let value = BigInt(Data(hex: value.stringWithAlignedHexBytes()).bytes)
+      let nonce = BigInt(Data(hex: nonce.stringWithAlignedHexBytes()).byteArray)
+      let maxPriorityFeePerGas = BigInt(Data(hex: maxPriorityFeePerGas.stringWithAlignedHexBytes()).byteArray)
+      let maxFeePerGas = BigInt(Data(hex: maxFeePerGas.stringWithAlignedHexBytes()).byteArray)
+      let gasLimit = BigInt(Data(hex: gasLimit.stringWithAlignedHexBytes()).byteArray)
+      let value = BigInt(Data(hex: value.stringWithAlignedHexBytes()).byteArray)
       if let chainID = chainID {
         self.init(
           nonce: nonce,

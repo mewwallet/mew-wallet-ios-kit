@@ -20,7 +20,7 @@ extension Data {
     try BLSInterface.blsInit()
     
     var secretKey = bls_framework.blsSecretKey.init()
-    var bytes = self.bytes
+    var bytes = self.byteArray
     blsSecretKeyDeserialize(&secretKey, &bytes, numericCast(bytes.count))
     return secretKey
   }
@@ -41,8 +41,8 @@ extension Data {
     
     while sk.isZero {
       salt = salt.sha256()
-      let inputKeyingMaterial = self.bytes + [0x00]
-      let info = keyInfo.bytes + [0x00, 0x30]
+      let inputKeyingMaterial = self.byteArray + [0x00]
+      let info = keyInfo.byteArray + [0x00, 0x30]
       
       let okm = try HKDF(password: inputKeyingMaterial, salt: salt, info: info, keyLength: 48, variant: .sha2(.sha256)).calculate()
       guard let okmBN = BigInt(Data(okm).toHexString(), radix: 16) else {
