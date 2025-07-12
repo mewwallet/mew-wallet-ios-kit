@@ -42,7 +42,7 @@ extension PrivateKey: IPrivateKey {
   }
   
   public init(seed: Data, network: Network) throws {
-    let output = try Data(HMAC(key: HMACKeyData, variant: .sha2(.sha512)).authenticate(seed.bytes))
+    let output = try Data(HMAC(key: HMACKeyData, variant: .sha2(.sha512)).authenticate(seed.byteArray))
     guard output.count == 64 else {
       throw PrivateKeyError.invalidData
     }
@@ -169,9 +169,9 @@ extension PrivateKey: BIP32 {
     derivingIndex = CFSwapInt32BigToHost(node.index())
     data += Data(derivingIndex.bigEndian.bytes)
     
-    let digest = try Data(HMAC(key: self.chainCode.bytes, variant: .sha2(.sha512)).authenticate(data.bytes))
+    let digest = try Data(HMAC(key: self.chainCode.byteArray, variant: .sha2(.sha512)).authenticate(data.byteArray))
     
-    let factor = BigInt(data: Data(digest[0 ..< 32].bytes))
+    let factor = BigInt(data: Data(digest[0 ..< 32].byteArray))
     guard let curveOrder = BigInt("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141", radix: 16) else {
       throw PrivateKeyError.invalidData
     }

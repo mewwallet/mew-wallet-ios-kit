@@ -7,6 +7,7 @@
 
 import Foundation
 import BigInt
+import CryptoSwift
 
 public final class EIP2930Transaction: LegacyTransaction {
   private(set) public var accessList: [AccessList]
@@ -83,10 +84,10 @@ public final class EIP2930Transaction: LegacyTransaction {
     accessList: [AccessList]?,
     chainID: Data? = nil
   ) throws {
-    let nonce = BigInt(Data(hex: nonce.stringWithAlignedHexBytes()).bytes)
-    let gasPrice = BigInt(Data(hex: gasPrice.stringWithAlignedHexBytes()).bytes)
-    let gasLimit = BigInt(Data(hex: gasLimit.stringWithAlignedHexBytes()).bytes)
-    let value = BigInt(Data(hex: value.stringWithAlignedHexBytes()).bytes)
+    let nonce = BigInt(Data(hex: nonce.stringWithAlignedHexBytes()).byteArray)
+    let gasPrice = BigInt(Data(hex: gasPrice.stringWithAlignedHexBytes()).byteArray)
+    let gasLimit = BigInt(Data(hex: gasLimit.stringWithAlignedHexBytes()).byteArray)
+    let value = BigInt(Data(hex: value.stringWithAlignedHexBytes()).byteArray)
     if let chainID = chainID {
       self.init(
         nonce: nonce,

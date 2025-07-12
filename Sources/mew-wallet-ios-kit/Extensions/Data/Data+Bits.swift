@@ -34,7 +34,7 @@ extension Data {
   }
 
   func bits(_ range: ClosedRange<Int>) -> [Bit]? {
-    let bits: [Bit] = self.bytes.flatMap { $0.bits() }
+    let bits: [Bit] = self.byteArray.flatMap { $0.bits() }
     guard range.lowerBound >= 0, range.upperBound >= 0, range.lowerBound < bits.count, range.upperBound < bits.count else {
       return nil
     }
@@ -48,7 +48,7 @@ private struct BitReader {
   private let data: [UInt8]
   
   init(data: Data) {
-    self.data = data.bytes
+    self.data = data.byteArray
   }
   
   func length() -> Int {

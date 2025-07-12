@@ -10,6 +10,7 @@
 
 import Foundation
 import bls_framework
+import CryptoSwift
 
 private let PUBLIC_KEY_LENGHT = 48
 
@@ -18,7 +19,7 @@ extension blsPublicKey {
     get throws {
       try BLSInterface.blsInit()
       
-      var bytes = Data(count: PUBLIC_KEY_LENGHT).bytes
+      var bytes = Data(count: PUBLIC_KEY_LENGHT).byteArray
       var `self` = self
       blsPublicKeySerialize(&bytes, PUBLIC_KEY_LENGHT, &self)
       

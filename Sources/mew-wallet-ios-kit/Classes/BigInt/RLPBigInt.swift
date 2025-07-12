@@ -8,6 +8,7 @@
 
 import Foundation
 import BigInt
+import CryptoSwift
 
 public struct RLPBigInt {
   public let value: BigInt
@@ -36,7 +37,7 @@ public struct RLPBigInt {
   }
   
   private var _data: [UInt8] {
-    return value.toTwosComplement().bytes
+    return value.toTwosComplement().byteArray
   }
 }
 

@@ -8,6 +8,7 @@
 
 import Foundation
 import mew_wallet_ios_secp256k1
+import CryptoSwift
 
 enum SECP256k1PubkeyError: Error {
   case invalidPrivateKey
@@ -35,7 +36,7 @@ extension secp256k1_pubkey {
   
   init(privateKey: Data, context: OpaquePointer/*secp256k1_context*/) throws {
     self.init()
-    let prvKey = privateKey.bytes
+    let prvKey = privateKey.byteArray
     
     let result = secp256k1_ec_pubkey_create(context, &self, prvKey)
     if result != 1 {

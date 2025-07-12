@@ -8,6 +8,7 @@
 
 import Foundation
 import BigInt
+import CryptoSwift
 
 extension Data {
   func encodeBase58(alphabet: String) -> Data? {
@@ -16,7 +17,7 @@ extension Data {
     let radix = BigInt(alphabet.count.bytes)
         
     var result: [UInt8] = []
-    result.reserveCapacity(bytes.count)
+    result.reserveCapacity(byteArray.count)
     
     while value > 0 {
       let (quotient, modulus) = value.quotientAndRemainder(dividingBy: radix)
@@ -24,7 +25,7 @@ extension Data {
       value = quotient
     }
     
-    let prefix = Array(bytes.prefix(while: {$0 == 0}).map { _ in alphabetBytes[0] })
+    let prefix = Array(byteArray.prefix(while: {$0 == 0}).map { _ in alphabetBytes[0] })
     result.append(contentsOf: prefix)
     result.reverse()
     

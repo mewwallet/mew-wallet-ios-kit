@@ -8,12 +8,13 @@
 
 import Foundation
 import mew_wallet_ios_secp256k1
+import CryptoSwift
 
 extension Data {
   package func secp256k1Verify(context: OpaquePointer/*secp256k1_context*/) -> Bool {
     guard self.count == 32 else { return false }
 
-    var seckey = self.bytes
+    var seckey = self.byteArray
     let result = secp256k1_ec_seckey_verify(context, &seckey)
 
     return result == 1
@@ -23,8 +24,8 @@ extension Data {
     guard self.count == 32, privateKey.count == 32 else { return nil }
     var signature = secp256k1_ecdsa_recoverable_signature()
     
-    var data = self.bytes
-    var key = privateKey.bytes
+    var data = self.byteArray
+    var key = privateKey.byteArray
     
     let status: Int32
     if extraEntropy {
@@ -44,7 +45,7 @@ extension Data {
   package func secp256k1ParseSignature(context: OpaquePointer/*secp256k1_context*/) -> secp256k1_ecdsa_recoverable_signature? {
     guard self.count == 65 else { return nil }
     var signature = secp256k1_ecdsa_recoverable_signature()
-    var serialized = self[0 ..< 64].bytes
+    var serialized = self[0 ..< 64].byteArray
     // swiftlint:disable:next identifier_name
     let v = Int32(self[64])
     

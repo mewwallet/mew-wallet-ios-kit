@@ -7,11 +7,12 @@
 //
 
 import Foundation
+import CryptoSwift
 
 extension FixedWidthInteger {
   var bytes: [UInt8] {
     let data = withUnsafeBytes(of: self) { Data($0) }
     
-    return data.bytes.reversed()
+    return data.byteArray.reversed()
   }
 }
