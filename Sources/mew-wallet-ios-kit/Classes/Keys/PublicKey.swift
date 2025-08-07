@@ -8,6 +8,7 @@
 
 import Foundation
 import mew_wallet_ios_secp256k1
+import mew_wallet_ios_tweetnacl
 
 private struct PublicKeyConstants {
   static let compressedKeySize = 33
@@ -47,17 +48,23 @@ public struct PublicKey: IPublicKey {
   
   init(privateKey: Data, compressed: Bool = false, chainCode: Data, depth: UInt8, fingerprint: Data, index: UInt32, network: Network) throws {
     self.config = PublicKeyConfig(compressed: compressed)
-    guard let context = secp256k1_context_create(UInt32(SECP256K1_CONTEXT_SIGN)) else {
-      throw PublicKeyError.internalError
-    }
-    defer { secp256k1_context_destroy(context) }
     
-    var pKey = try secp256k1_pubkey(privateKey: privateKey, context: context)
-    
-    guard let rawData = pKey.data(context: context, flags: self.config.keyFlags) else {
-      throw PublicKeyError.internalError
+    switch network {
+    case .solana:
+      self.raw = try TweetNacl.signKeyPair(seed: privateKey).publicKey
+    default:
+      guard let context = secp256k1_context_create(UInt32(SECP256K1_CONTEXT_SIGN)) else {
+        throw PublicKeyError.internalError
+      }
+      defer { secp256k1_context_destroy(context) }
+      
+      var pKey = try secp256k1_pubkey(privateKey: privateKey, context: context)
+      
+      guard let rawData = pKey.data(context: context, flags: self.config.keyFlags) else {
+        throw PublicKeyError.internalError
+      }
+      self.raw = rawData
     }
-    self.raw = rawData
     self.chainCode = chainCode
     self.depth = depth
     self.fingerprint = fingerprint
@@ -102,9 +109,16 @@ extension PublicKey: IKey {
   public func data() -> Data {
     return self.raw
   }
-  
   public func address() -> Address? {
     switch self.network {
+    case .solana:
+      guard let alphabet = self.network.alphabet else {
+        return nil
+      }
+      guard let stringAddress: String = self.raw.encodeBase58(alphabet: alphabet) else {
+        return nil
+      }
+      return Address(raw: stringAddress)
     case .bitcoin(let format) where format == .segwit || format == .segwitTestnet:
       guard self.raw.count == PublicKeyConstants.compressedKeySize else { return nil }
       let publicKey = self.raw

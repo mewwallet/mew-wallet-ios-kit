@@ -33,6 +33,7 @@ public enum Network: Equatable, Sendable {
     case bitcoin
   }
   case bitcoin(_ format: Bitcoin)
+  case solana
   case litecoin
   case singularDTV
   case expanse
@@ -79,6 +80,7 @@ public enum Network: Equatable, Sendable {
     case "m/0'/0'/0'":            self = .singularDTV
     case "m/44'/0'/0'/0":         self = .bitcoin(.legacy)
     case "m/84'/0'/0'/0":         self = .bitcoin(.segwit)
+    case "m/44'/501'":            self = .solana
     case "m/44'/2'/0'/0":         self = .litecoin
     case "m/44'/40'/0'/0":        self = .expanse
     case "m/44'/60'":             self = .keepkeyEthereum
@@ -112,7 +114,6 @@ public enum Network: Equatable, Sendable {
     case "m/44'/42'/0'/0":        self = .kovan
     case "m/44'/5'/0'/0":         self = .goerli
     case "m/12381/3600":          self = .eth2Withdrawal
-    case "":                      self = .none
     default:                      self = .custom(name: path, path: path, pathProvider: pathProvider, chainID: chainID)
     }
   }
@@ -123,6 +124,7 @@ public enum Network: Equatable, Sendable {
     case .bitcoin(.segwit):                                                   return "Bitcoin SegWit"
     case .bitcoin(.legacyTestnet):                                            return "Bitcoin testnet"
     case .bitcoin(.segwitTestnet):                                            return "Bitcoin SegWit testnet"
+    case .solana:                                                             return "Solana"
     case .litecoin:                                                           return "Litecoin"
     case .singularDTV:                                                        return "SingularDTV"
     case .expanse:                                                            return "Expanse"
@@ -177,6 +179,12 @@ public enum Network: Equatable, Sendable {
       } else {
         return self.path
       }
+    case .solana:
+      if let index = index {
+        return self.path.appending("/\(index)'/0'")
+      } else {
+        return self.path
+      }
     default:
       if let index = index {
         return self.path.appending("/\(index)")
@@ -221,6 +229,7 @@ public enum Network: Equatable, Sendable {
     case .bitcoin(.segwit):                                     return "m/84'/0'/0'/0"
     case .bitcoin(.legacyTestnet):                              return "m/44'/1'/0'/0"
     case .bitcoin(.segwitTestnet):                              return "m/84'/0'/0'/0"
+    case .solana:                                               return "m/44'/501'"
     case .litecoin:                                             return "m/44'/2'/0'/0"
     case .expanse:                                              return "m/44'/40'/0'/0"
     case .ledgerLiveEthereum, .keepkeyEthereum:                 return "m/44'/60'"
@@ -266,6 +275,7 @@ public enum Network: Equatable, Sendable {
     switch self {
     case .singularDTV:                                          return 0
     case .bitcoin:                                              return 0
+    case .solana:                                               return 0
     case .litecoin:                                             return 2
     case .expanse:                                              return 2
     case .ledgerLiveEthereum, .keepkeyEthereum:                 return 1
@@ -338,6 +348,7 @@ public enum Network: Equatable, Sendable {
       }
     case .ethereum, .anonymizedId, .kovan, .goerli,
         .zkSyncAlphaTestnet, .zkSyncMainnet:                  return "0x"
+    case .solana:                                             return ""
     case .none:                                               return ""
     default:                                                  return "0x"
     }
@@ -345,7 +356,8 @@ public enum Network: Equatable, Sendable {
   
   var alphabet: String? {
     switch self {
-    case .bitcoin:          return "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+    case .bitcoin, .solana:     
+      return "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
     default:                return nil
     }
   }
@@ -385,7 +397,18 @@ public enum Network: Equatable, Sendable {
     case .ethereum: return "eth"
     case .kovan:    return "kov"
     case .goerli:   return "goe"
+    case .solana:   return "sol"
     default:        return ""
+    }
+  }
+  
+  var seedKey: [UInt8] {
+    switch self {
+    case .solana:
+      return "ed25519 seed".data(using: .utf8, allowLossyConversion: true)?.byteArray ?? []
+      
+    default:
+      return [0x42, 0x69, 0x74, 0x63, 0x6F, 0x69, 0x6E, 0x20, 0x73, 0x65, 0x65, 0x64] // "Bitcoin seed"
     }
   }
 }

@@ -106,8 +106,8 @@ fileprivate struct WIFTests {
   func wifToPrivateKey() async throws {
     let wif = "5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ"
     let pk = PrivateKey(wif: wif, network: .bitcoin(.segwit))
-    
-    #expect(pk?.data() == Data(hex: "0C28FCA386C7A227600B2FE50B7CAE11EC86D3BF1FBE471BE89827E19D72AA1D"))
+    let pkData = try pk?.data()
+    #expect(pkData == Data(hex: "0C28FCA386C7A227600B2FE50B7CAE11EC86D3BF1FBE471BE89827E19D72AA1D"))
   }
   
   @Test("Test WIF invalid cases")

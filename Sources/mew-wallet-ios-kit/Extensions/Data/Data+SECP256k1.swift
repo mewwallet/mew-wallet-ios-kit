@@ -62,8 +62,8 @@ extension Data {
     return publicKey
   }
   
-  public func secp256k1Multiply(privateKey: PrivateKey) -> Data? {
-    return self.secp256k1Multiply(privateKey: privateKey.data())
+  public func secp256k1Multiply(privateKey: PrivateKey) throws -> Data? {
+    return try self.secp256k1Multiply(privateKey: privateKey.data())
   }
   
   public func secp256k1Multiply(privateKey: Data) -> Data? {
