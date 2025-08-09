@@ -2,13 +2,13 @@
 //  File.swift
 //  mew-wallet-ios-kit
 //
-//  Created by Mikhail Nikanorov on 4/18/25.
+//  Created by Mikhail Nikanorov on 8/8/25.
 //
 
 import Foundation
 import mew_wallet_ios_kit_utils
 
-extension Bitcoin._Encoding {
+extension Solana._ShortVecEncoding {
   /// A custom implementation of `Swift.Encoder` used to encode Bitcoin-specific structures
   /// (e.g. transactions, scripts, PSBTs) into binary format with fine control over size encoding.
   ///
@@ -29,9 +29,6 @@ extension Bitcoin._Encoding {
     /// The backing storage where encoded bytes are collected.
     let storage: BinaryStorage
     
-    /// Encoding strategy for collection sizes (e.g., varInt or none).
-    let sizeEncodingFormat: Bitcoin.Encoder.SizeEncodingFormat
-    
     /// Initializes a new encoder instance.
     ///
     /// - Parameters:
@@ -39,27 +36,26 @@ extension Bitcoin._Encoding {
     ///   - userInfo: Any contextual information for encoding.
     ///   - storage: The output data storage buffer.
     ///   - sizeEncodingFormat: The strategy used for encoding size prefixes (e.g. `.varInt`).
-    init(codingPath: [any CodingKey], userInfo: [CodingUserInfoKey : Any], storage: BinaryStorage, sizeEncodingFormat: Bitcoin.Encoder.SizeEncodingFormat) {
+    init(codingPath: [any CodingKey], userInfo: [CodingUserInfoKey : Any], storage: BinaryStorage) {
       self.codingPath = codingPath
       self.userInfo = userInfo
       self.storage = storage
-      self.sizeEncodingFormat = sizeEncodingFormat
     }
     
     /// Creates a keyed encoding container.
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key : CodingKey {
-      let container = Bitcoin._Encoding.KeyedContainer<Key>(encoder: self)
+      let container = Solana._ShortVecEncoding.KeyedContainer<Key>(encoder: self)
       return KeyedEncodingContainer(container)
     }
     
     /// Creates an unkeyed encoding container.
     func unkeyedContainer() -> any UnkeyedEncodingContainer {
-      return Bitcoin._Encoding.UnkeyedContainer(encoder: self, key: self.codingPath.last)
+      return Solana._ShortVecEncoding.UnkeyedContainer(encoder: self, key: self.codingPath.last)
     }
     
     /// Creates a single-value encoding container.
     func singleValueContainer() -> any SingleValueEncodingContainer {
-      return Bitcoin._Encoding.SingleValueContainer(encoder: self)
+      return Solana._ShortVecEncoding.SingleValueContainer(encoder: self)
     }
   }
 }

@@ -53,7 +53,7 @@ public struct Address: CustomDebugStringConvertible, Sendable {
     let alphabet = Network.bitcoin(.legacy).alphabet
     
     // Try Base58Check decode
-    if let alphabet, let decoded = bitcoinAddress.decodeBase58(alphabet: alphabet), decoded.count == 25 {
+    if let alphabet, let decoded = try? bitcoinAddress.decodeBase58(alphabet: alphabet), decoded.count == 25 {
       let payload = decoded.prefix(21)
       let checksum = decoded.suffix(4)
       let calculated: Data = payload.hash256().prefix(4)

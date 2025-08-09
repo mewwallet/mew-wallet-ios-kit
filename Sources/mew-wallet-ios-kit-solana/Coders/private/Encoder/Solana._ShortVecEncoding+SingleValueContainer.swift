@@ -2,13 +2,13 @@
 //  File.swift
 //  mew-wallet-ios-kit
 //
-//  Created by Mikhail Nikanorov on 4/18/25.
+//  Created by Mikhail Nikanorov on 8/8/25.
 //
 
 import Foundation
 import mew_wallet_ios_kit_utils
 
-extension Bitcoin._Encoding {
+extension Solana._ShortVecEncoding {
   /// A custom single value encoding container used for serializing raw values
   /// into Bitcoin-compatible binary formats.
   ///
@@ -31,12 +31,12 @@ extension Bitcoin._Encoding {
     var codingPath: [CodingKey] { encoder.codingPath }
     
     /// The backing encoder.
-    private let encoder: Bitcoin._Encoding.Encoder
+    private let encoder: Solana._ShortVecEncoding.Encoder
     
     /// Initializes a new single value container.
     ///
     /// - Parameter encoder: The parent encoder instance.
-    init(encoder: Bitcoin._Encoding.Encoder) {
+    init(encoder: Solana._ShortVecEncoding.Encoder) {
       self.encoder = encoder
     }
     
@@ -46,29 +46,10 @@ extension Bitcoin._Encoding {
     /// - Otherwise, a nested encoder is used and the encoded result is prefixed with size.
     mutating func encode<T>(_ value: T) throws where T : Encodable {
       guard let data = value as? Data else {
-        // Encode nested structure
-        let storage = BinaryStorage()
-        let encoder = Bitcoin._Encoding.Encoder(
-          codingPath: self.codingPath,
-          userInfo: self.encoder.userInfo,
-          storage: storage,
-          sizeEncodingFormat: self.encoder.sizeEncodingFormat
-        )
-        try value.encode(to: encoder)
-        let size = _Reader.VarInt(rawValue: storage.length)
-        size.write(to: self.encoder.storage)
-        self.encoder.storage.append(storage: storage)
-        return
+        throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "Non-Data values are not supported"))
       }
       
       // Directly encode raw data
-      switch self.encoder.sizeEncodingFormat {
-      case .varInt:
-        let size = _Reader.VarInt(rawValue: data.count)
-        size.write(to: self.encoder.storage)
-      case .disabled:
-        break
-      }
       self.encoder.storage.append(data)
     }
     
@@ -90,7 +71,13 @@ extension Bitcoin._Encoding {
     /// - Parameter value: The integer to encode.
     @inline(__always)
     mutating func encodeFixedWidthInteger<T>(_ value: T) throws where T: FixedWidthInteger {
-      self.encoder.storage.append(value)
+      var value = value
+      repeat {
+        var byte = UInt8(truncatingIfNeeded: value & 0x7F)
+        value >>= 7
+        if value != 0 { byte |= 0x80 }
+        self.encoder.storage.append(byte)
+      } while value != 0
     }
     
     // MARK: - Unsupported types

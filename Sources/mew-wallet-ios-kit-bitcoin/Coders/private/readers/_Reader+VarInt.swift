@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import mew_wallet_ios_kit_utils
 
 extension _Reader {
   /// Bitcoin-style variable-length integer.
@@ -94,7 +95,7 @@ extension _Reader {
     /// Encodes the `VarInt` value into a binary buffer using Bitcoin's variable-length format.
     ///
     /// - Parameter storage: Target buffer to append encoded bytes.
-    func write(to storage: Bitcoin._Encoding.Storage) {
+    func write(to storage: BinaryStorage) {
       switch rawValue {
       case ..<0xfd:
         storage.append(UInt8(rawValue))

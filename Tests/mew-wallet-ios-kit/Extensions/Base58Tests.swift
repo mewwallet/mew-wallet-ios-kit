@@ -56,7 +56,7 @@ class Base58Tests: QuickSpec {
       
       it("Should decode correctly") {
         for vector in self.testVectors {
-          let decoded = vector.encoded.decodeBase58(alphabet: self.alphabet)
+          let decoded = try? vector.encoded.decodeBase58(alphabet: self.alphabet)
           expect(decoded).to(equal(vector.decoded))
         }
       }

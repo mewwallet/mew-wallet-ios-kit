@@ -37,7 +37,7 @@ private struct PublicKeyConfig {
 @available(*, deprecated, renamed: "PublicKey", message: "Please use PublicKey instead")
 public typealias PublicKeyEth1 = PublicKey
 
-public struct PublicKey: IPublicKey {
+public struct PublicKey: IPublicKey, Sendable {
   private let raw: Data
   private let chainCode: Data
   private let depth: UInt8
@@ -73,7 +73,7 @@ public struct PublicKey: IPublicKey {
   }
   
   init(publicKey: Data, compressed: Bool? = false, index: UInt32, network: Network) throws {
-    guard let compressed = compressed else {
+    guard let compressed else {
       throw PublicKeyError.invalidConfiguration
     }
     self.config = PublicKeyConfig(compressed: compressed)
@@ -83,6 +83,14 @@ public struct PublicKey: IPublicKey {
     self.fingerprint = Data()
     self.index = index
     self.network = network
+  }
+  
+  package init(base58: String, network: Network) throws {
+    guard network == .solana, let alphabet = network.alphabet else {
+      throw PublicKeyError.invalidNetwork
+    }
+    let raw = try base58.decodeBase58(alphabet: alphabet)
+    try self.init(publicKey: raw, compressed: true, index: 0, network: network)
   }
 }
 
@@ -172,6 +180,33 @@ extension PublicKey: IKey {
         return nil
       }
       return Address(address: eip55, prefix: self.network.addressPrefix)
+    }
+  }
+}
+
+// MARK: - PublicKey: Equatable
+  
+extension PublicKey: Equatable {
+  public static func == (lhs: PublicKey, rhs: PublicKey) -> Bool {
+    return lhs.raw == rhs.raw && lhs.network == rhs.network
+  }
+}
+
+extension PublicKey: Hashable {
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(self.raw)
+    hasher.combine(self.network)
+  }
+}
+
+extension PublicKey: Encodable {
+  public func encode(to encoder: any Encoder) throws {
+    switch self.network {
+    case .solana:
+      var container = encoder.singleValueContainer()
+      try container.encode(self.raw)
+    default:
+      break
     }
   }
 }

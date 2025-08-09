@@ -21,16 +21,24 @@ open class NetworkPathProvider: Equatable, @unchecked Sendable {
   open func path(_ type: NetworkPathProviderType, _ index: UInt32?) -> String { return "" }
 }
 
-public enum Network: Equatable, Sendable {
-  public enum Bitcoin: Equatable, Sendable {
+extension NetworkPathProvider: Hashable {
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(self.path(.prefix, 0))
+    hasher.combine(self.path(.suffix, 0))
+  }
+}
+
+public enum Network: Equatable, Sendable, Hashable {
+  public enum Bitcoin: Equatable, Sendable, Hashable {
     case legacy
     case legacyTestnet
     case segwit
     case segwitTestnet
   }
-  public enum NetworkType: Equatable, Sendable {
+  public enum NetworkType: Equatable, Sendable, Hashable {
     case evm
     case bitcoin
+    case solana
   }
   case bitcoin(_ format: Bitcoin)
   case solana
@@ -111,6 +119,7 @@ public enum Network: Equatable, Sendable {
     case "m/44'/1313114'/0'/0":   self = .ether1
     case "m/1000'/60'/0'/0":      self = .anonymizedId(.evm)
     case "m/1040'/60'/0'/0":      self = .anonymizedId(.bitcoin)
+    case "m/1080'/60'/0'/0":      self = .anonymizedId(.solana)
     case "m/44'/42'/0'/0":        self = .kovan
     case "m/44'/5'/0'/0":         self = .goerli
     case "m/12381/3600":          self = .eth2Withdrawal
@@ -262,6 +271,7 @@ public enum Network: Equatable, Sendable {
       switch network {
       case .evm:                                                return "m/1000'/60'/0'/0"
       case .bitcoin:                                            return "m/1040'/60'/0'/0"
+      case .solana:                                             return "m/1080'/60'/0'/0"
       }
     case .kovan:                                                return "m/44'/42'/0'/0"
     case .goerli:                                               return "m/44'/5'/0'/0"

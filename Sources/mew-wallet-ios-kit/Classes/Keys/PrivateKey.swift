@@ -64,7 +64,7 @@ extension PrivateKey: IPrivateKey {
   
   public init?(wif: String, network: Network) {
     guard let alphabet = network.alphabet else { return nil }
-    guard var data = wif.decodeBase58(alphabet: alphabet) else { return nil }
+    guard var data = try? wif.decodeBase58(alphabet: alphabet) else { return nil }
     
     let checksum = Data(data.suffix(4))
     data = data.dropLast(4)
@@ -173,16 +173,11 @@ extension PrivateKey: BIP32 {
     derivingIndex = CFSwapInt32BigToHost(node.index())
     data += Data(derivingIndex.bigEndian.bytes)
     
-    print("DATA TO DERIVE: \(data.toHexString())")
-//    print("DATA TO DERIVE: \(data.toHexString()). EDBYTES: \(index.edBytes.toHexString())")
-    
     let digest = try Data(HMAC(key: self.chainCode.byteArray, variant: .sha2(.sha512)).authenticate(data.byteArray))
     
     let derivedPrivateKey: Self
     switch network {
     case .solana:
-      // swiftlint:disable:next identifier_name
-      
       var derivedPrivateKeyData = Data(digest[0 ..< 32])
       derivedPrivateKeyData.setLength(32, appendFromLeft: true)
       derivedChainCode = Data(digest[32 ..< 64])

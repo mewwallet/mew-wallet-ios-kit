@@ -51,6 +51,7 @@ let package = Package(
     .target(
       name: "mew-wallet-ios-kit-bitcoin",
       dependencies: [
+        "mew-wallet-ios-kit-utils",
         "CryptoSwift"
       ],
       path: "Sources/mew-wallet-ios-kit-bitcoin"
@@ -71,9 +72,25 @@ let package = Package(
       name: "mew-wallet-ios-kit-solana",
       dependencies: [
         "CryptoSwift",
+        "mew-wallet-ios-kit-utils",
         "mew-wallet-ios-kit"
       ],
       path: "Sources/mew-wallet-ios-kit-solana"
+    ),
+    
+    // Solana signing
+    .target(
+      name: "mew-wallet-ios-kit-solana-sign",
+      dependencies: [
+        "mew-wallet-ios-kit-solana",
+      ],
+      path: "Sources/mew-wallet-ios-kit-solana-sign"
+    ),
+    
+    // Uitls
+    .target(
+      name: "mew-wallet-ios-kit-utils",
+      path: "Sources/mew-wallet-ios-kit-utils"
     )
   ],
   swiftLanguageModes: [.v4, .v4_2, .v5, .v6]
@@ -117,7 +134,6 @@ package.targets.append(
   )
 )
 
-
 // MARK: mew-wallet-ios-solana-tests
 package.targets.append(
   .testTarget(
@@ -126,5 +142,16 @@ package.targets.append(
       "mew-wallet-ios-kit-solana"
     ],
     path: "Tests/mew-wallet-ios-kit-solana"
+  )
+)
+
+// MARK: mew-wallet-ios-solana-sign-tests
+package.targets.append(
+  .testTarget(
+    name: "mew-wallet-ios-kit-solana-sign-tests",
+    dependencies: [
+      "mew-wallet-ios-kit-solana-sign"
+    ],
+    path: "Tests/mew-wallet-ios-kit-solana-sign"
   )
 )

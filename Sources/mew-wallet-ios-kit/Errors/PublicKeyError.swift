@@ -12,4 +12,5 @@ public enum PublicKeyError: Error {
   case invalidPrivateKey
   case internalError
   case invalidConfiguration
+  case invalidNetwork
 }
