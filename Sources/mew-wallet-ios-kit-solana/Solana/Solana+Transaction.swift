@@ -50,7 +50,7 @@ extension Solana {
     /// nonce value implies that the nonce has been advanced.
     let minNonceContextSlot: UInt64?
     
-    internal var _message: Message?
+    package var _message: Message?
     
     public init(
       signatures: [SignaturePubkeyPair] = [],
@@ -116,14 +116,14 @@ extension Solana {
     /// Add one or more instructions to this Transaction
     /// - Parameter instructions: Instructions to be added
     /// - Returns: `Transaction` with all instructions
-    func adding(instructions: TransactionInstruction...) throws -> Self {
+    public func adding(instructions: TransactionInstruction...) throws -> Self {
       return try self.adding(instructions: instructions)
     }
     
     /// Add one or more instructions to this Transaction
     /// - Parameter instructions: Instructions to be added
     /// - Returns: `Transaction` with all instructions
-    func adding(transaction: Transaction) throws -> Self {
+    public func adding(transaction: Transaction) throws -> Self {
       return try self.adding(instructions: transaction.instructions)
     }
     
@@ -320,5 +320,23 @@ extension Solana {
         instructions: compiled
       )
     }
+  }
+}
+
+extension Solana.Transaction: Encodable {
+  public func encode(to encoder: any Encoder) throws {
+    var container = encoder.unkeyedContainer()
+    
+    let message = try self.compileMessage()
+    
+    try container.encode(self.signatures.count)
+    try self.signatures.forEach {
+      if let signature = $0.signature {
+        try container.encode(signature)
+      } else {
+        try container.encode(Data(repeating: 0x00, count: 64))
+      }
+    }
+    try container.encode(message)
   }
 }

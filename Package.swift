@@ -90,6 +90,9 @@ let package = Package(
     // Uitls
     .target(
       name: "mew-wallet-ios-kit-utils",
+      dependencies: [
+        "BigInt",
+      ],
       path: "Sources/mew-wallet-ios-kit-utils"
     )
   ],
@@ -153,5 +156,16 @@ package.targets.append(
       "mew-wallet-ios-kit-solana-sign"
     ],
     path: "Tests/mew-wallet-ios-kit-solana-sign"
+  )
+)
+
+// MARK: mew-wallet-ios-solana-sign-tests
+package.targets.append(
+  .testTarget(
+    name: "mew-wallet-ios-kit-utils-tests",
+    dependencies: [
+      "mew-wallet-ios-kit-utils"
+    ],
+    path: "Tests/mew-wallet-ios-kit-utils"
   )
 )

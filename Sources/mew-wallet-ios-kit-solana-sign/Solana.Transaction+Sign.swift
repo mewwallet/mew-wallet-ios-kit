@@ -43,6 +43,37 @@ extension Solana.Transaction {
     try self.sign(signers: signers)
   }
   
+  /**
+   * Partially sign a transaction with the specified accounts. All accounts must
+   * correspond to either the fee payer or a signer account in the transaction
+   * instructions.
+   *
+   * All the caveats from the `sign` method apply to `partialSign`
+   *
+   * @param {Array<Signer>} signers Array of signers that will sign the transaction
+   */
+  public mutating func partialSign(signers: [PrivateKey]) throws {
+    guard !signers.isEmpty else {
+      throw SignError.noSigners
+    }
+    
+    var uniqueSigners: [PrivateKey] = []
+    uniqueSigners.reserveCapacity(signers.count)
+    
+    for signer in signers {
+      if try !uniqueSigners.contains(where: { try $0.publicKey() == signer.publicKey() }) {
+        uniqueSigners.append(signer)
+      }
+    }
+    
+    let message = try self._compile()
+    try self._partialSign(message: message, signers: uniqueSigners)
+  }
+  
+  public mutating func partialSign(signers: PrivateKey...) throws {
+    try self.partialSign(signers: signers)
+  }
+  
   private mutating func _partialSign(message: Solana.Message, signers: [PrivateKey]) throws {
     let encoder = Solana.ShortVecEncoder()
     let data = try encoder.encode(message)
@@ -53,7 +84,7 @@ extension Solana.Transaction {
     }
   }
   
-  private mutating func _compile() throws -> Solana.Message {
+  package mutating func _compile() throws -> Solana.Message {
     let message = try self.compileMessage()
     let signedKeys = message.accountKeys.prefix(Int(message.header.numRequiredSignatures))
     

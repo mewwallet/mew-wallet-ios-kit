@@ -7,6 +7,7 @@
 
 import Foundation
 import mew_wallet_ios_kit
+import mew_wallet_ios_kit_utils
 
 extension Solana {
   public struct TransactionInstruction: Equatable, Sendable {
@@ -24,6 +25,16 @@ extension Solana {
       self.keys = keys
       self.programId = programId
       self.data = data
+    }
+    
+    public init(keys: [AccountMeta], programId: PublicKey?, data: [any EndianBytesEncodable]) {
+      self.keys = keys
+      self.programId = programId
+      self.data = Data(data.littleEndianBytes)
+    }
+    
+    public init(keys: [AccountMeta], programId: PublicKey?, data: any EndianBytesEncodable...) {
+      self.init(keys: keys, programId: programId, data: data)
     }
   }
 }

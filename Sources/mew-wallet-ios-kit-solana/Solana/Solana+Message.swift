@@ -11,14 +11,13 @@ import mew_wallet_ios_kit
 extension Solana {
   /// List of instructions to be processed atomically
   public struct Message: Equatable, Sendable {
-    package let header: MessageHeader
+    public let header: MessageHeader
     
-    package let accountKeys: [PublicKey]
+    public let accountKeys: [PublicKey]
     
-    let recentBlockhash: String
+    public let recentBlockhash: String
     
-    let instructions: [CompiledInstruction]
-    
+    public let instructions: [CompiledInstruction]
   }
 }
 

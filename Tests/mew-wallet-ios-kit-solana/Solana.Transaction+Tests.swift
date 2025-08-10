@@ -120,4 +120,89 @@ fileprivate struct SolanaTransactionCompileMessageTests {
     #expect(message.accountKeys[4] == programId)
     #expect(message.accountKeys[5] == account5)
   }
+  
+  @Test("prepends the nonce advance instruction when compiling nonce-based transactions")
+  func prependsTheNonceAdvanceInstructionWhenCompilingNonceBasedTransactions() async throws {
+    let nonce = try PublicKey(hex: "0x01", network: .solana)
+    let nonceAuthority = try PublicKey(hex: "0x02", network: .solana)
+    let nonceInfo = try Solana.NonceInformation(
+      nonce: nonce,
+      nonceInstruction: Solana.SystemProgram.nonceAdvance(
+        params: .init(
+          noncePubkey: nonce,
+          authorizedPubkey: nonceAuthority
+        )
+      )
+    )
+    let transaction = try Solana.Transaction(
+      feePayer: nonceAuthority,
+      nonceInfo: nonceInfo
+    ).adding(
+      instructions: Solana.SystemProgram.transfer(
+        params: .init(
+          fromPubkey: nonceAuthority,
+          toPubkey: PublicKey(hex: "0x03", network: .solana),
+          lamports: 1
+        )
+      )
+    )
+    
+    let message = try transaction.compileMessage()
+    let programIdIndex: Int = {
+      var found = -1
+      for (i, key) in message.accountKeys.enumerated() {
+        if key == Solana.SystemProgram.programId {
+          found = i
+          break
+        }
+      }
+      return found
+    }()
+    #expect(message.instructions.count == 2)
+    #expect(message.instructions[0].accounts == [1, 4, 0])
+    #expect(message.instructions[0].data == Data(UInt32(4).littleEndianBytes))
+    #expect(message.instructions[0].programIdIndex == programIdIndex)
+  }
+  
+  @Test("does not prepend the nonce advance instruction when compiling nonce-based transactions if it is already there")
+  func doesNotPrependTheNonceAdvanceInstructionWhenCompilingNonceBasedTransactionsIfItIsAlreadyThere() async throws {
+    let nonce = try PublicKey(hex: "0x01", network: .solana)
+    let nonceAuthority = try PublicKey(hex: "0x02", network: .solana)
+    let nonceInfo = try Solana.NonceInformation(
+      nonce: nonce,
+      nonceInstruction: Solana.SystemProgram.nonceAdvance(
+        params: .init(
+          noncePubkey: nonce,
+          authorizedPubkey: nonceAuthority
+        )
+      )
+    )
+    let transaction = try Solana.Transaction(feePayer: nonceAuthority, nonceInfo: nonceInfo)
+      .adding(instructions: nonceInfo.nonceInstruction)
+      .adding(
+        instructions: Solana.SystemProgram.transfer(
+          params: .init(
+            fromPubkey: nonceAuthority,
+            toPubkey: PublicKey(hex: "0x03", network: .solana),
+            lamports: 1
+          )
+        )
+      )
+    
+    let message = try transaction.compileMessage()
+    let programIdIndex: Int = {
+      var found = -1
+      for (i, key) in message.accountKeys.enumerated() {
+        if key == Solana.SystemProgram.programId {
+          found = i
+          break
+        }
+      }
+      return found
+    }()
+    #expect(message.instructions.count == 2)
+    #expect(message.instructions[0].accounts == [1, 4, 0])
+    #expect(message.instructions[0].data == Data(UInt32(4).littleEndianBytes))
+    #expect(message.instructions[0].programIdIndex == programIdIndex)
+  }
 }

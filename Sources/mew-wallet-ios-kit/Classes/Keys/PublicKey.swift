@@ -92,6 +92,15 @@ public struct PublicKey: IPublicKey, Sendable {
     let raw = try base58.decodeBase58(alphabet: alphabet)
     try self.init(publicKey: raw, compressed: true, index: 0, network: network)
   }
+  
+  package init(hex: String, network: Network) throws {
+    guard network == .solana else {
+      throw PublicKeyError.invalidNetwork
+    }
+    var raw = Data(hex: hex)
+    raw.setLength(32, appendFromLeft: true, negative: false)
+    try self.init(publicKey: raw, compressed: true, index: 0, network: network)
+  }
 }
 
 extension PublicKey: IKey {
