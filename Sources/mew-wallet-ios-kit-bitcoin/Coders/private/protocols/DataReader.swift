@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import mew_wallet_ios_kit_utils
 
 /// A protocol representing a type that can parse and interpret binary data
 /// for use in custom decoding flows like Bitcoin or PSBT transaction decoding.

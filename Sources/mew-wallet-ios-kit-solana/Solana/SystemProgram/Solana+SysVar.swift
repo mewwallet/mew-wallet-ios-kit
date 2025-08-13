@@ -8,7 +8,7 @@
 import Foundation
 import mew_wallet_ios_kit
 
-extension Solana.SystemProgram {
+extension Solana {
   public enum SysVar {
     static let clock                = try! PublicKey(base58: "SysvarC1ock11111111111111111111111111111111", network: .solana)
     static let epochSchedule        = try! PublicKey(base58: "SysvarEpochSchedu1e111111111111111111111111", network: .solana)

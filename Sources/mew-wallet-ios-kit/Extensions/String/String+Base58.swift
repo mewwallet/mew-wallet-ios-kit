@@ -11,7 +11,7 @@ import BigInt
 import CryptoSwift
 
 extension String {
-  package enum Base58Error: Error {
+  public enum Base58Error: Error {
     case invalidCharacter
   }
   

@@ -21,7 +21,15 @@ extension Solana {
   }
 }
 
-extension Solana.MessageHeader: Encodable {
+extension Solana.MessageHeader: Codable {
+  public init(from decoder: any Decoder) throws {
+    var container = try decoder.unkeyedContainer()
+    
+    self.numRequiredSignatures = try container.decode(UInt8.self)
+    self.numReadonlySignedAccounts = try container.decode(UInt8.self)
+    self.numReadonlyUnsignedAccounts = try container.decode(UInt8.self)
+  }
+  
   public func encode(to encoder: any Encoder) throws {
     var container = encoder.unkeyedContainer()
     

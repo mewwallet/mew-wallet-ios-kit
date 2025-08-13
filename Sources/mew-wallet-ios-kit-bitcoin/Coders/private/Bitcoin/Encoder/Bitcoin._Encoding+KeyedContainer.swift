@@ -79,13 +79,13 @@ extension Bitcoin._Encoding {
           break // No prefix
         case "vin", "inputs", "vout", "outputs", "script_witnesses":
           if let array = value as? [Any] {
-            let size = _Reader.VarInt(rawValue: array.count)
+            let size = VarInt(rawValue: array.count)
             size.write(to: self.encoder.storage)
           }
         default:
           switch self.encoder.sizeEncodingFormat {
           case .varInt:
-            let size = _Reader.VarInt(rawValue: storage.length)
+            let size = VarInt(rawValue: storage.length)
             size.write(to: self.encoder.storage)
           case .disabled:
             break
@@ -102,7 +102,7 @@ extension Bitcoin._Encoding {
       default:
         switch self.encoder.sizeEncodingFormat {
         case .varInt:
-          let size = _Reader.VarInt(rawValue: data.count)
+          let size = VarInt(rawValue: data.count)
           size.write(to: self.encoder.storage)
         case .disabled:
           break

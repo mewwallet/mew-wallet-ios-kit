@@ -335,7 +335,7 @@ extension Solana {
       return TransactionInstruction(
         keys: [
           .init(pubkey: params.noncePubkey, isSigner: false, isWritable: true),
-          .init(pubkey: Solana.SystemProgram.SysVar.recentBlockhashes, isSigner: false, isWritable: false),
+          .init(pubkey: Solana.SysVar.recentBlockhashes, isSigner: false, isWritable: false),
           .init(pubkey: params.authorizedPubkey, isSigner: true, isWritable: false),
         ],
         programId: SystemProgram.programId,

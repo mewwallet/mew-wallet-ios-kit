@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import mew_wallet_ios_kit_utils
 
 extension _Reader {
   /// Binary reader for decoding Bitcoin script operations (`Script.asm`).

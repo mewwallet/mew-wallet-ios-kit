@@ -16,7 +16,7 @@ extension Data {
   /// - Returns: A `Range<Data.Index>` representing the advanced region.
   /// - Throws: `DataReaderError.outOfBounds` if the cursor exceeds buffer bounds.
   @discardableResult
-  internal func seek(_ cursor: inout Index, offsetBy: Int) throws(DataReaderError) -> Range<Self.Index> {
+  package func seek(_ cursor: inout Index, offsetBy: Int) throws(DataReaderError) -> Range<Self.Index> {
     guard cursor + offsetBy <= self.endIndex else { throw .outOfBounds }
     let newCursor = index(cursor, offsetBy: offsetBy)
     let range = cursor..<newCursor
@@ -31,7 +31,7 @@ extension Data {
   ///   - offsetBy: Number of bytes to read.
   /// - Returns: A `SubSequence` view into the original `Data`.
   /// - Throws: `DataReaderError.outOfBounds` if out of bounds.
-  internal func read(_ cursor: inout Index, offsetBy: Int) throws(DataReaderError) -> Data.SubSequence {
+  package func read(_ cursor: inout Index, offsetBy: Int) throws(DataReaderError) -> Data.SubSequence {
     guard cursor + offsetBy <= self.endIndex else { throw .outOfBounds }
     let newCursor = index(cursor, offsetBy: offsetBy)
     let data = self[cursor..<newCursor]
@@ -46,7 +46,7 @@ extension Data {
   ///   - offsetBy: Number of bytes to read.
   /// - Returns: A reversed `Data` slice.
   /// - Throws: `DataReaderError.outOfBounds` if range is invalid.
-  internal func readReversed(_ cursor: inout Index, offsetBy: Int) throws(DataReaderError) -> Data.SubSequence {
+  package func readReversed(_ cursor: inout Index, offsetBy: Int) throws(DataReaderError) -> Data.SubSequence {
     return try Data(read(&cursor, offsetBy: offsetBy).reversed())
   }
   
@@ -55,7 +55,7 @@ extension Data {
   /// - Parameter cursor: Cursor to read from.
   /// - Returns: The byte read at the current position.
   /// - Throws: `DataReaderError.outOfBounds` if there is no data to read.
-  internal func read(_ cursor: inout Index) throws(DataReaderError) -> Self.Element {
+  package func read(_ cursor: inout Index) throws(DataReaderError) -> Self.Element {
     return try self.read(&cursor, offsetBy: 1).first!
   }
   
@@ -64,10 +64,10 @@ extension Data {
   /// - Parameter cursor: Cursor to read from (advanced in-place).
   /// - Returns: A `VarInt` structure.
   /// - Throws: `.outOfBounds` or `.badValue` if invalid or truncated.
-  internal func read(_ cursor: inout Index) throws(DataReaderError) -> _Reader.VarInt {
+  package func read(_ cursor: inout Index) throws(DataReaderError) -> VarInt {
     guard cursor < self.endIndex else { throw DataReaderError.outOfBounds }
     do {
-      let varInt = try _Reader.VarInt(head: self[cursor...])
+      let varInt = try VarInt(head: self[cursor...])
       try self.seek(&cursor, offsetBy: varInt.size)
       return varInt
     } catch {
@@ -80,7 +80,7 @@ extension Data {
   /// - Parameter cursor: Cursor to read from (advanced in-place).
   /// - Returns: The decoded integer value.
   /// - Throws: `.outOfBounds` or `.badSize` if the read is invalid.
-  internal func readLE<T: FixedWidthInteger>(_ cursor: inout Index) throws(DataReaderError) -> T {
+  package func readLE<T: FixedWidthInteger>(_ cursor: inout Index) throws(DataReaderError) -> T {
     let size = MemoryLayout<T>.size
     guard cursor + size <= self.endIndex else { throw DataReaderError.outOfBounds }
     let newCursor = index(cursor, offsetBy: size)
@@ -93,7 +93,7 @@ extension Data {
   ///
   /// - Returns: A decoded integer of type `T`.
   /// - Throws: `.badSize` if the data length does not match `T`'s size.
-  internal func readLE<T: FixedWidthInteger>() throws(DataReaderError) -> T {
+  package func readLE<T: FixedWidthInteger>() throws(DataReaderError) -> T {
     guard self.count == MemoryLayout<T>.size else { throw DataReaderError.badSize }
     
     var result: T = 0
