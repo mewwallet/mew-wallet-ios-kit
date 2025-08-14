@@ -72,7 +72,7 @@ public struct PublicKey: IPublicKey, Sendable {
     self.network = network
   }
   
-  init(publicKey: Data, compressed: Bool? = false, index: UInt32, network: Network) throws {
+  public init(publicKey: Data, compressed: Bool? = false, index: UInt32, network: Network) throws {
     guard let compressed else {
       throw PublicKeyError.invalidConfiguration
     }
@@ -217,5 +217,13 @@ extension PublicKey: Encodable {
     default:
       break
     }
+  }
+}
+
+extension PublicKey: Decodable {
+  public init(from decoder: any Decoder) throws {
+    let container = try decoder.singleValueContainer()
+    let raw = try container.decode(Data.self)
+    try self.init(publicKey: raw, compressed: true, index: 0, network: .solana)
   }
 }

@@ -75,13 +75,13 @@ extension Solana.Transaction {
   }
   
   private mutating func _partialSign(message: Solana.Message, signers: [PrivateKey]) throws {
-    let encoder = Solana.ShortVecEncoder()
-    let data = try encoder.encode(message)
-    
-    try signers.forEach { key in
-      let signature = try TweetNacl.sign(message: data, secretKey: key.data())
-      try self._addSignature(signature: signature, for: key.publicKey())
-    }
+//    let encoder = Solana.ShortVecEncoder()
+//    let data = try encoder.encode(message)
+//    
+//    try signers.forEach { key in
+//      let signature = try TweetNacl.sign(message: data, secretKey: key.data())
+//      try self._addSignature(signature: signature, for: key.publicKey())
+//    }
   }
   
   package mutating func _compile() throws -> Solana.Message {

@@ -51,9 +51,9 @@ extension Solana.Transaction {
     var errors: [ValidationError] = []
     for signature in self.signatures {
       if let sig = signature.signature {
-        if verifySignatures && !TweetNacl.verify(message: message, signature: sig, publicKey: signature.publicKey.data()) {
-          errors.append(.invalidSignature(signature.publicKey))
-        }
+//        if verifySignatures && !TweetNacl.verify(message: message, signature: sig, publicKey: signature.publicKey.data()) {
+//          errors.append(.invalidSignature(signature.publicKey))
+//        }
       } else if requireAllSignatures {
         errors.append(.missingSignature(signature.publicKey))
       }

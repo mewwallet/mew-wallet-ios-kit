@@ -1,4 +1,4 @@
-// swift-tools-version:6.1
+// swift-tools-version:6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -21,6 +21,10 @@ let package = Package(
     .library(
       name: "mew-wallet-ios-kit-bitcoin-sign",
       targets: ["mew-wallet-ios-kit-bitcoin-sign"]
+    ),
+    .library(
+      name: "mew-wallet-ios-kit-solana",
+      targets: ["mew-wallet-ios-kit-solana"]
     )
   ],
   dependencies: [
