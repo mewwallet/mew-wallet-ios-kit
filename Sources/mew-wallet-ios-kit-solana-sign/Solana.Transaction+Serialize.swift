@@ -11,11 +11,11 @@ import mew_wallet_ios_kit_solana
 import mew_wallet_ios_tweetnacl
 
 extension Solana.Transaction {
-  struct ValidationErrors: Swift.Error {
+  struct ValidationErrors: Swift.Error, Equatable {
     public let errors: [ValidationError]
   }
   
-  public enum ValidationError: Swift.Error {
+  public enum ValidationError: Swift.Error, Equatable {
     case invalidSignature(PublicKey)
     case missingSignature(PublicKey)
   }
@@ -45,6 +45,18 @@ extension Solana.Transaction {
     }
     let encoder = Solana.ShortVecEncoder()
     return try encoder.encode(self)
+  }
+  
+  /**
+   * Verify signatures of a Transaction
+   * Optional parameter specifies if we're expecting a fully signed Transaction or a partially signed one.
+   * If no boolean is provided, we expect a fully signed Transaction by default.
+   *
+   * @param {boolean} [requireAllSignatures=true] Require a fully signed Transaction
+   */
+  mutating public func verifySignatures(requireAllSignatures: Bool = true) throws -> Bool {
+    let message = try self.serializeMessage()
+    return self._getValidationErrors(message: message, requireAllSignatures: requireAllSignatures, verifySignatures: true).isEmpty
   }
   
   private func _getValidationErrors(message: Data, requireAllSignatures: Bool, verifySignatures: Bool) -> [Solana.Transaction.ValidationError] {

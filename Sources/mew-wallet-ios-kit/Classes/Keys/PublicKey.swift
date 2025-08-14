@@ -120,7 +120,7 @@ extension PublicKey: IKey {
     extendedKey += self.raw
     let checksum = extendedKey.sha256().sha256().prefix(4)
     extendedKey += checksum
-    return extendedKey.encodeBase58(alphabet: alphabet)
+    return try? extendedKey.encodeBase58(alphabet: alphabet)
   }
   
   public func data() -> Data {
@@ -132,7 +132,7 @@ extension PublicKey: IKey {
       guard let alphabet = self.network.alphabet else {
         return nil
       }
-      guard let stringAddress: String = self.raw.encodeBase58(alphabet: alphabet) else {
+      guard let stringAddress: String = try? self.raw.encodeBase58(alphabet: alphabet) else {
         return nil
       }
       return Address(raw: stringAddress)
@@ -158,7 +158,7 @@ extension PublicKey: IKey {
       let payload = publicKey.sha256().ripemd160()
       let checksum = (prefix + payload).sha256().sha256().prefix(4)
       let data = prefix + payload + checksum
-      guard let stringAddress: String = data.encodeBase58(alphabet: alphabet) else {
+      guard let stringAddress: String = try? data.encodeBase58(alphabet: alphabet) else {
         return nil
       }
       return Address(raw: stringAddress)
@@ -174,7 +174,7 @@ extension PublicKey: IKey {
       let payload = publicKey.ripemd160()
       let checksum = (prefix + payload).sha256().sha256().prefix(4)
       let data = prefix + payload + checksum
-      guard let stringAddress: String = data.encodeBase58(alphabet: alphabet) else {
+      guard let stringAddress: String = try? data.encodeBase58(alphabet: alphabet) else {
         return nil
       }
       return Address(raw: stringAddress)
@@ -208,7 +208,15 @@ extension PublicKey: Hashable {
   }
 }
 
-extension PublicKey: Encodable {
+extension PublicKey: Codable {
+  public init(from decoder: any Decoder) throws {
+    let container = try decoder.singleValueContainer()
+    let raw = try container.decode(Data.self)
+    
+    // TODO: Support other networks
+    try self.init(publicKey: raw, index: 0, network: .solana)
+  }
+  
   public func encode(to encoder: any Encoder) throws {
     switch self.network {
     case .solana:

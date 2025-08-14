@@ -16,12 +16,16 @@ extension Solana {
       case recentBlockhashRequired
       case feePayerRequired
       case undefinedProgramId(index: Int)
-      case unknownSigner(Address?)
+      case unknownSigner(PublicKey)
       case noSigners
     }
     
     /// Signatures for the transaction.  Typically created by invoking the `sign()` method
-    public var signatures: [SignaturePubkeyPair]
+    public var signatures: [SignaturePubkeyPair] {
+      didSet {
+        self._message = nil
+      }
+    }
     
     /// The transaction fee payer
     public var feePayer: PublicKey? {
@@ -31,10 +35,18 @@ extension Solana {
     }
     
     /// The instructions to atomically execute
-    var instructions: [TransactionInstruction]
+    public var instructions: [TransactionInstruction] {
+      didSet {
+        self._message = nil
+      }
+    }
     
     /// A recent transaction id. Must be populated by the caller
-    public var recentBlockhash: String?
+    public var recentBlockhash: String? {
+      didSet {
+        self._message = nil
+      }
+    }
     
     /// the last block chain can advance to before tx is declared expired
     let lastValidBlockHeight: UInt64?
@@ -74,7 +86,7 @@ extension Solana {
     
     /// Add one or more instructions to this Transaction
     /// - Parameter instructions: Instructions to be added
-    mutating func add(instructions: [TransactionInstruction]) throws {
+    mutating public func add(instructions: [TransactionInstruction]) throws {
       guard !instructions.isEmpty else {
         throw Error.noInstructions
       }
@@ -84,11 +96,11 @@ extension Solana {
     
     /// Add one or more instructions to this Transaction
     /// - Parameter instructions: Instructions to be added
-    mutating func add(instructions: TransactionInstruction...) throws {
+    mutating public func add(instructions: TransactionInstruction...) throws {
       try self.add(instructions: instructions)
     }
     
-    mutating func add(transaction: Self) throws {
+    mutating public func add(transaction: Self) throws {
       try self.add(instructions: transaction.instructions)
     }
     
@@ -183,19 +195,20 @@ extension Solana {
         throw Error.feePayerRequired
       }
       
+      // TODO: Check
       // Validate programIds presence
-      for (index, instruction) in instructions.enumerated() {
-        guard instruction.programId != nil else {
-          throw Error.undefinedProgramId(index: index)
-        }
-      }
+//      for (index, instruction) in instructions.enumerated() {
+//        guard instruction.programId != nil else {
+//          throw Error.undefinedProgramId(index: index)
+//        }
+//      }
       
       // Collect metas & programIds
       var programIds: [PublicKey] = []
       var metas: [AccountMeta] = []
       for instruction in instructions {
         metas.append(contentsOf: instruction.keys)
-        let pid = instruction.programId! // Safe, programId was validated
+        let pid = instruction.programId
         if !programIds.contains(pid) { programIds.append(pid) }
       }
       
@@ -260,7 +273,7 @@ extension Solana {
       // Disallow unknown signers
       for sig in signatures {
         guard let idx = uniqueMetas.firstIndex(where: { $0.pubkey == sig.publicKey }) else {
-          throw Error.unknownSigner(sig.publicKey.address())
+          throw Error.unknownSigner(sig.publicKey)
         }
         if !uniqueMetas[idx].isSigner {
           uniqueMetas[idx] = .init(pubkey: uniqueMetas[idx].pubkey, isSigner: true, isWritable: uniqueMetas[idx].isWritable)
@@ -291,7 +304,7 @@ extension Solana {
       
       // Compile instructions with indexed accounts
       let compiled: [CompiledInstruction] = instructions.map { instruction in
-        let programIndex = accountKeys.firstIndex(of: instruction.programId!)!
+        let programIndex = accountKeys.firstIndex(of: instruction.programId)!
         
         let accountIndices: [UInt8] = instruction.keys.compactMap { meta in
           guard let idx = accountKeys.firstIndex(of: meta.pubkey) else { return nil }
@@ -320,23 +333,66 @@ extension Solana {
         instructions: compiled
       )
     }
+    
+    // MARK: - Populate
+    
+    public mutating func populate(signatures rawSigs: [Data], message: Solana.Message) {
+      let feePayer: PublicKey? = message.header.numRequiredSignatures > 0 ? message.accountKeys.first : nil
+
+      // DEFAULT_SIGNATURE == 64 zero bytes
+      let defaultSignature = Data(repeating: 0, count: 64)
+
+      // Signatures: map N leading account keys to N signatures
+      let signatures = rawSigs.enumerated().map { (idx, sig) in
+        Solana.SignaturePubkeyPair(
+          signature: (sig == defaultSignature) ? nil : sig,
+          publicKey: message.accountKeys[idx]
+        )
+      }
+      
+      // Instructions: expand account indices into metas
+      let instructions = message.instructions.map { ix in
+        let keys: [Solana.AccountMeta] = ix.accounts.map { accountIndex in
+          let index = Int(accountIndex)
+          let pk = message.accountKeys[index]
+          let isSigner = signatures.contains(where: { $0.publicKey == pk }) || message.isAccountSigner(index: index)
+          let isWritable = message.isAccountWritable(index: index)
+          
+          return Solana.AccountMeta(pubkey: pk, isSigner: isSigner, isWritable: isWritable)
+        }
+        
+        let programId = message.accountKeys[Int(ix.programIdIndex)]
+        
+        // Assuming `ix.data` is already `Data` (adjust if your `Message` uses base58 `String`)
+        return Solana.TransactionInstruction(keys: keys, programId: programId, data: ix.data)
+      }
+      
+      self.signatures = signatures
+      self.feePayer = feePayer
+      self.instructions = instructions
+      self.recentBlockhash = message.recentBlockhash
+      self._message = message
+    }
   }
 }
 
-extension Solana.Transaction: Encodable {
+extension Solana.Transaction: Codable {
+  public init(from decoder: any Decoder) throws {
+    var container = try decoder.unkeyedContainer()
+    
+    // Decode wire fields
+    let rawSignatures = try container.decode([Data].self)
+    let message = try container.decode(Solana.Message.self)
+    
+    self.init()
+    self.populate(signatures: rawSignatures, message: message)
+  }
+  
   public func encode(to encoder: any Encoder) throws {
     var container = encoder.unkeyedContainer()
     
+    try container.encode(self.signatures)
     let message = try self.compileMessage()
-    
-    try container.encode(self.signatures.count)
-    try self.signatures.forEach {
-      if let signature = $0.signature {
-        try container.encode(signature)
-      } else {
-        try container.encode(Data(repeating: 0x00, count: 64))
-      }
-    }
     try container.encode(message)
   }
 }

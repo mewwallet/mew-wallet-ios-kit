@@ -16,24 +16,24 @@ extension Solana {
     let keys: [AccountMeta]
     
     /// Program Id to execute
-    let programId: PublicKey?
+    let programId: PublicKey
     
     /// Program input
     let data: Data?
     
-    public init(keys: [AccountMeta], programId: PublicKey?, data: Data? = nil) {
+    public init(keys: [AccountMeta], programId: PublicKey, data: Data? = nil) {
       self.keys = keys
       self.programId = programId
       self.data = data
     }
     
-    public init(keys: [AccountMeta], programId: PublicKey?, data: [any EndianBytesEncodable]) {
+    public init(keys: [AccountMeta], programId: PublicKey, data: [any EndianBytesEncodable]) {
       self.keys = keys
       self.programId = programId
       self.data = Data(data.littleEndianBytes)
     }
     
-    public init(keys: [AccountMeta], programId: PublicKey?, data: any EndianBytesEncodable...) {
+    public init(keys: [AccountMeta], programId: PublicKey, data: any EndianBytesEncodable...) {
       self.init(keys: keys, programId: programId, data: data)
     }
   }

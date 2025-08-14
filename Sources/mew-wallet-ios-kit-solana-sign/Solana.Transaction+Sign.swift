@@ -11,7 +11,7 @@ import mew_wallet_ios_kit
 import mew_wallet_ios_tweetnacl
 
 extension Solana.Transaction {
-  public enum SignError: Swift.Error {
+  public enum SignError: Swift.Error, Equatable {
     case noSigners
     case badSignatureLength
     case unknownSigner(PublicKey)
@@ -72,6 +72,19 @@ extension Solana.Transaction {
   
   public mutating func partialSign(signers: PrivateKey...) throws {
     try self.partialSign(signers: signers)
+  }
+  
+  /**
+   * Add an externally created signature to a transaction. The public key
+   * must correspond to either the fee payer or a signer account in the transaction
+   * instructions.
+   *
+   * @param {PublicKey} pubkey Public key that will be added to the transaction.
+   * @param {Buffer} signature An externally created signature to add to the transaction.
+   */
+  mutating func addSignature(pubkey: PublicKey, signature: Data) throws {
+    _ = try self._compile() // Ensure signatures array is populated
+    try self._addSignature(signature: signature, for: pubkey)
   }
   
   private mutating func _partialSign(message: Solana.Message, signers: [PrivateKey]) throws {

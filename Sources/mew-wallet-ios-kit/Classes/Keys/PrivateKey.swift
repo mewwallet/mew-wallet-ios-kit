@@ -113,7 +113,7 @@ extension PrivateKey: IKey {
       data += Data([0x01])
     }
     data += data.sha256().sha256().prefix(4)
-    return data.encodeBase58(alphabet: alphabet)
+    return try? data.encodeBase58(alphabet: alphabet)
   }
   
   public func extended() -> String? {
@@ -130,7 +130,7 @@ extension PrivateKey: IKey {
     extendedKey += self.raw
     let checksum = extendedKey.sha256().sha256().prefix(4)
     extendedKey += checksum
-    return extendedKey.encodeBase58(alphabet: alphabet)
+    return try? extendedKey.encodeBase58(alphabet: alphabet)
   }
   
   public func data() throws -> Data {

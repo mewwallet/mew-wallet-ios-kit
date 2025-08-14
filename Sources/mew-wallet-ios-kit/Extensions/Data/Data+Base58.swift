@@ -11,7 +11,11 @@ import BigInt
 import CryptoSwift
 
 extension Data {
-  func encodeBase58(alphabet: String) -> Data? {
+  public enum Base58Error: Error {
+    case invalidData
+  }
+  
+  package func encodeBase58(alphabet: String) -> Data {
     let alphabetBytes = alphabet.bytes
     var value = BigInt(data: Data(self))
     let radix = BigInt(alphabet.count.bytes)
@@ -32,10 +36,21 @@ extension Data {
     return Data(result)
   }
   
-  func encodeBase58(alphabet: String) -> String? {
-    guard let data: Data = self.encodeBase58(alphabet: alphabet) else {
-      return nil
+  package func encodeBase58(alphabet: String) throws -> String {
+    let data: Data = self.encodeBase58(alphabet: alphabet)
+    guard let string = String(data: data, encoding: .utf8) else {
+      throw Base58Error.invalidData
     }
-    return String(data: data, encoding: .utf8)
+    return string
+  }
+  
+  package func encodeBase58(_ network: Network) throws -> Data {
+    precondition(network.alphabet != nil)
+    return encodeBase58(alphabet: network.alphabet!)
+  }
+  
+  package func encodeBase58(_ network: Network) throws -> String {
+    precondition(network.alphabet != nil)
+    return try encodeBase58(alphabet: network.alphabet!)
   }
 }

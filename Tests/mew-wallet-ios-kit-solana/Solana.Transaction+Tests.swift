@@ -206,3 +206,163 @@ fileprivate struct SolanaTransactionCompileMessageTests {
     #expect(message.instructions[0].programIdIndex == programIdIndex)
   }
 }
+
+@Suite("Solana.Transaction other tests")
+fileprivate struct SolanaTransactionOtherTests {
+  @Test("populate transaction")
+  func populateTransaction() async throws {
+    let recentBlockhash = try PublicKey(hex: "0x01", network: .solana).address()!.address
+    let message = try Solana.Message(
+      header: .init(
+        numRequiredSignatures: 2,
+        numReadonlySignedAccounts: 0,
+        numReadonlyUnsignedAccounts: 3
+      ),
+      accountKeys: [
+        PublicKey(hex: "0x01", network: .solana),
+        PublicKey(hex: "0x02", network: .solana),
+        PublicKey(hex: "0x03", network: .solana),
+        PublicKey(hex: "0x04", network: .solana),
+        PublicKey(hex: "0x05", network: .solana),
+      ],
+      recentBlockhash: recentBlockhash,
+      instructions: [
+        .init(
+          programIdIndex: 4,
+          accounts: [1, 2, 3],
+          data: Data(repeating: 0x09, count: 5)
+        )
+      ]
+    )
+    
+    let signatures: [Data] = [
+      Data(repeating: 0x01, count: 64),
+      Data(repeating: 0x02, count: 64),
+    ]
+    
+    var transaction = Solana.Transaction()
+    transaction.populate(signatures: signatures, message: message)
+    
+    #expect(transaction.instructions.count == 1)
+    #expect(transaction.signatures.count == 2)
+    #expect(transaction.recentBlockhash == recentBlockhash)
+  }
+  
+  @Test("populate then compile transaction")
+  func populateThenCompileTransaction() async throws {
+    let recentBlockhash = try PublicKey(hex: "0x01", network: .solana).address()!.address
+    let message = try Solana.Message(
+      header: .init(
+        numRequiredSignatures: 2,
+        numReadonlySignedAccounts: 0,
+        numReadonlyUnsignedAccounts: 3
+      ),
+      accountKeys: [
+        PublicKey(hex: "0x01", network: .solana),
+        PublicKey(hex: "0x02", network: .solana),
+        PublicKey(hex: "0x03", network: .solana),
+        PublicKey(hex: "0x04", network: .solana),
+        PublicKey(hex: "0x05", network: .solana),
+      ],
+      recentBlockhash: recentBlockhash,
+      instructions: [
+        .init(
+          programIdIndex: 2,
+          accounts: [1, 2, 3],
+          data: Data(repeating: 0x09, count: 5)
+        )
+      ]
+    )
+    
+    let signatures: [Data] = [
+      Data(repeating: 0x01, count: 64),
+      Data(repeating: 0x02, count: 64),
+    ]
+    
+    var transaction = Solana.Transaction()
+    transaction.populate(signatures: signatures, message: message)
+    
+    let compiledMessage = try transaction.compileMessage()
+    #expect(compiledMessage == message)
+    
+    // show that without caching the message, the populated message
+    // might not be the same when re-compiled
+    transaction._message = nil
+    let compiledMessage2 = try transaction.compileMessage()
+    #expect(compiledMessage2 != message)
+
+    // show that even if message is cached, transaction may still
+    // be modified
+    transaction._message = message
+    transaction.recentBlockhash = try PublicKey(hex: "0x64", network: .solana).address()!.address
+    let compiledMessage3 = try transaction.compileMessage()
+    #expect(compiledMessage3 != message)
+  }
+  
+  @Test("constructs a transaction with nonce info")
+  func constructsATransactionWithNonceInfo() async throws {
+    let nonce = try PublicKey(hex: "0x01", network: .solana)
+    let nonceAuthority = try PublicKey(hex: "0x02", network: .solana)
+    let nonceInfo = Solana.NonceInformation(
+      nonce: nonce.address()!.address,
+      nonceInstruction: Solana.SystemProgram.nonceAdvance(
+        params: .init(
+          noncePubkey: nonce,
+          authorizedPubkey: nonceAuthority
+        )
+      )
+    )
+    
+    let transaction = Solana.Transaction(nonceInfo: nonceInfo)
+    
+    #expect(transaction.recentBlockhash == nil)
+    #expect(transaction.lastValidBlockHeight == nil)
+    #expect(transaction.nonceInfo == nonceInfo)
+  }
+  
+  @Test("constructs a transaction with last valid block height")
+  func constructsATransactionWithLastValidBlockHeight() async throws {
+    let blockhash = "EETubP5AKHgjPAhzPAFcb8BAY1hMH639CWCFTqi3hq1k"
+    let lastValidBlockHeight: UInt64 = 1234
+    let transaction = Solana.Transaction(
+      blockhash: blockhash,
+      lastValidBlockHeight: lastValidBlockHeight
+    )
+    #expect(transaction.recentBlockhash == blockhash)
+    #expect(transaction.lastValidBlockHeight == lastValidBlockHeight)
+  }
+  
+  @Test("constructs a transaction with nonce information")
+  func constructsATransactionWithNonceInformation() async throws {
+    let nonceAuthority = try PublicKey(hex: "0x01", network: .solana)
+    let nonceAccountPubkey = try PublicKey(hex: "0x02", network: .solana)
+    let nonceValue = "EETubP5AKHgjPAhzPAFcb8BAY1hMH639CWCFTqi3hq1k"
+    
+    let nonceInfo = Solana.NonceInformation(
+      nonce: nonceValue,
+      nonceInstruction: Solana.SystemProgram.nonceAdvance(
+        params: .init(
+          noncePubkey: nonceAccountPubkey,
+          authorizedPubkey: nonceAuthority
+        )
+      )
+    )
+    let minContextSlot: UInt64 = 1234
+    let transaction = Solana.Transaction(nonceInfo: nonceInfo, minNonceContextSlot: minContextSlot)
+    
+    #expect(transaction.recentBlockhash == nil)
+    #expect(transaction.lastValidBlockHeight == nil)
+    #expect(transaction.minNonceContextSlot == minContextSlot)
+    #expect(transaction.nonceInfo == nonceInfo)
+  }
+  
+  @Test("constructs a transaction with only a recent blockhash")
+  func constructsATransactionWithOnlyARecentBlockhash() async throws {
+    let recentBlockhash = "EETubP5AKHgjPAhzPAFcb8BAY1hMH639CWCFTqi3hq1k"
+    let transaction = Solana.Transaction(
+      blockhash: recentBlockhash
+    )
+    #expect(transaction.recentBlockhash == recentBlockhash)
+    #expect(transaction.lastValidBlockHeight == nil)
+  }
+}

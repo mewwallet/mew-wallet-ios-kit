@@ -55,7 +55,7 @@ extension Bitcoin._Encoding {
           sizeEncodingFormat: self.encoder.sizeEncodingFormat
         )
         try value.encode(to: encoder)
-        let size = _Reader.VarInt(rawValue: storage.length)
+        let size = VarInt(rawValue: storage.length)
         size.write(to: self.encoder.storage)
         self.encoder.storage.append(storage: storage)
         return
@@ -64,7 +64,7 @@ extension Bitcoin._Encoding {
       // Directly encode raw data
       switch self.encoder.sizeEncodingFormat {
       case .varInt:
-        let size = _Reader.VarInt(rawValue: data.count)
+        let size = VarInt(rawValue: data.count)
         size.write(to: self.encoder.storage)
       case .disabled:
         break

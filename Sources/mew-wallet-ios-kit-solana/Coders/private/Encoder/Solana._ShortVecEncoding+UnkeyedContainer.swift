@@ -72,20 +72,20 @@ extension Solana._ShortVecEncoding {
     
     // MARK: - Fixed-width integer encoding
     
-    mutating func encode(_ value: UInt64) throws { try self.encodeFixedWidthInteger(value) }
-    mutating func encode(_ value: UInt32) throws { try self.encodeFixedWidthInteger(value) }
-    mutating func encode(_ value: UInt16) throws { try self.encodeFixedWidthInteger(value) }
-    mutating func encode(_ value: UInt8) throws { try self.encodeFixedWidthInteger(value) }
-    mutating func encode(_ value: UInt) throws { try self.encodeFixedWidthInteger(value) }
-    mutating func encode(_ value: Int64) throws { try self.encodeFixedWidthInteger(value) }
-    mutating func encode(_ value: Int32) throws { try self.encodeFixedWidthInteger(value) }
-    mutating func encode(_ value: Int16) throws { try self.encodeFixedWidthInteger(value) }
-    mutating func encode(_ value: Int8) throws { try self.encodeFixedWidthInteger(value) }
-    mutating func encode(_ value: Int) throws { try self.encodeFixedWidthInteger(value) }
+    mutating func encode(_ value: UInt64) throws { try self.encodeShortVecInteger(value) }
+    mutating func encode(_ value: UInt32) throws { try self.encodeShortVecInteger(value) }
+    mutating func encode(_ value: UInt16) throws { try self.encodeShortVecInteger(value) }
+    mutating func encode(_ value: UInt8) throws { try self.encodeShortVecInteger(value) }
+    mutating func encode(_ value: UInt) throws { try self.encodeShortVecInteger(value) }
+    mutating func encode(_ value: Int64) throws { try self.encodeShortVecInteger(value) }
+    mutating func encode(_ value: Int32) throws { try self.encodeShortVecInteger(value) }
+    mutating func encode(_ value: Int16) throws { try self.encodeShortVecInteger(value) }
+    mutating func encode(_ value: Int8) throws { try self.encodeShortVecInteger(value) }
+    mutating func encode(_ value: Int) throws { try self.encodeShortVecInteger(value) }
     
-    /// Encodes a fixed-width integer in little-endian format and increments `count`.
+    /// Encodes a shortVec integer in little-endian format and increments `count`.
     @inline(__always)
-    mutating func encodeFixedWidthInteger<T>(_ value: T) throws where T: FixedWidthInteger {
+    mutating func encodeShortVecInteger<T>(_ value: T) throws where T: FixedWidthInteger {
       var value = value
       repeat {
         var byte = UInt8(truncatingIfNeeded: value & 0x7F)

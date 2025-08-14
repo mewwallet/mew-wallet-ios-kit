@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import mew_wallet_ios_kit_utils
 
 extension _Reader {
   /// PSBT output map parser (BIP-174).
@@ -43,24 +44,24 @@ extension _Reader {
       var cursor = data.startIndex
       
       while cursor != data.endIndex {
-        let keylen: _Reader.VarInt = try data.read(&cursor)
+        let keylen: VarInt = try data.read(&cursor)
         let key = try data.read(&cursor, offsetBy: keylen.value)
         let keytype = MapKey(map: .output_map, data: key)
         
         switch keytype {
         case .outputMap(.known(.PSBT_OUT_REDEEM_SCRIPT, let keydata)):
           guard keydata?.isEmpty ?? true else { throw DataReaderError.badValue }
-          let valuelen: _Reader.VarInt = try data.read(&cursor)
+          let valuelen: VarInt = try data.read(&cursor)
           self.redeem_script = try data.read(&cursor, offsetBy: valuelen.value)
           
         case .outputMap(.known(.PSBT_OUT_WITNESS_SCRIPT, let keydata)):
           guard keydata?.isEmpty ?? true else { throw DataReaderError.badValue }
-          let valuelen: _Reader.VarInt = try data.read(&cursor)
+          let valuelen: VarInt = try data.read(&cursor)
           self.witness_script = try data.read(&cursor, offsetBy: valuelen.value)
           
         case .outputMap(.known), .outputMap(.unknown):
           // Skip unhandled known or unknown keys
-          let valuelen: _Reader.VarInt = try data.read(&cursor)
+          let valuelen: VarInt = try data.read(&cursor)
           try data.seek(&cursor, offsetBy: valuelen.value)
           
         default:

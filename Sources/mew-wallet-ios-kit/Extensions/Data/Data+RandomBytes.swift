@@ -9,7 +9,6 @@
 import Foundation
 
 extension Data {
-  
   public static func randomBytes(length: Int) -> Data? {
     for _ in 0...1024 {
       var data = Data(repeating: 0, count: length)
@@ -25,5 +24,4 @@ extension Data {
     }
     return nil
   }
-  
 }
