@@ -7,17 +7,17 @@
 
 import Foundation
 
-extension Solana._BorshEncoding {
+extension Solana._Borsh {
   /// A simple single-value encoding container for Borsh serialization.
   internal struct SingleValueContainer: Swift.SingleValueEncodingContainer {
     /// The encoder this container belongs to.
-    let encoder: Solana._BorshEncoding.Encoder
+    let encoder: Solana._Borsh.Encoder
     
     /// The coding path for this container.
     var codingPath: [any CodingKey] { encoder.codingPath }
     
     /// Initializes a new single-value container.
-    init(encoder: Solana._BorshEncoding.Encoder) {
+    init(encoder: Solana._Borsh.Encoder) {
       self.encoder = encoder
     }
     
@@ -106,12 +106,12 @@ extension Solana._BorshEncoding {
     }
     
     mutating func encode<T>(_ value: T) throws where T : Encodable {
-      let nestedEncoder = Solana._BorshEncoding.Encoder(
-        codingPath: codingPath,
-        userInfo: encoder.userInfo,
-        storage: encoder.storage
-      )
-      try value.encode(to: nestedEncoder)
+                  let nestedEncoder = Solana._Borsh.Encoder(
+                codingPath: codingPath,
+                userInfo: encoder.userInfo,
+                storage: encoder.storage
+            )
+            try value.encode(to: nestedEncoder)
     }
   }
 }

@@ -214,7 +214,7 @@ extension PublicKey: Codable {
     let raw = try container.decode(Data.self)
     
     // TODO: Support other networks
-    try self.init(publicKey: raw, index: 0, network: .solana)
+    try self.init(publicKey: raw, compressed: true, index: 0, network: .solana)
   }
   
   public func encode(to encoder: any Encoder) throws {
@@ -225,13 +225,5 @@ extension PublicKey: Codable {
     default:
       break
     }
-  }
-}
-
-extension PublicKey: Decodable {
-  public init(from decoder: any Decoder) throws {
-    let container = try decoder.singleValueContainer()
-    let raw = try container.decode(Data.self)
-    try self.init(publicKey: raw, compressed: true, index: 0, network: .solana)
   }
 }

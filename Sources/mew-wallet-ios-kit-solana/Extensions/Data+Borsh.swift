@@ -30,4 +30,17 @@ extension Data {
     decoder.userInfo = userInfo
     return try decoder.decode(type, from: self)
   }
+  
+  /// Decodes a value of the specified type from this data using Borsh decoding with a specific decoding style.
+  ///
+  /// - Parameters:
+  ///   - type: The type of the value to decode.
+  ///   - style: The decoding style to use.
+  /// - Returns: A value of the specified type.
+  /// - Throws: An error if the value cannot be decoded.
+  public func decodeBorsh<T>(_ type: T.Type, style: Solana.BorshDecoder.DecodingStyle) throws -> T where T : Decodable {
+    let decoder = Solana.BorshDecoder()
+    decoder.decodingStyle = style
+    return try decoder.decode(type, from: self)
+  }
 }

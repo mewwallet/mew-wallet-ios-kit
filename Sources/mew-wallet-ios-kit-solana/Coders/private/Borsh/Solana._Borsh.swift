@@ -1,5 +1,5 @@
 //
-//  Solana._BorshEncoding.swift
+//  Solana._Borsh.swift
 //  mew-wallet-ios-kit
 //
 //  Created by Mikhail Nikanorov on 8/8/25.
@@ -10,6 +10,6 @@ import mew_wallet_ios_kit_utils
 
 extension Solana {
   /// Internal namespace for Borsh encoding/decoding components.
-  internal enum _BorshEncoding {
+  internal enum _Borsh {
   }
 }

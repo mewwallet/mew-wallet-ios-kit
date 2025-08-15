@@ -8,7 +8,7 @@
 import Foundation
 import mew_wallet_ios_kit_utils
 
-extension Solana._BorshEncoding {
+extension Solana._Borsh {
   /// A simple encoder for Borsh serialization that handles basic types.
   internal final class Encoder: Swift.Encoder {
     /// The current coding path for nested container resolution.
@@ -29,19 +29,19 @@ extension Solana._BorshEncoding {
     
     /// Creates a keyed encoding container.
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key : CodingKey {
-      let container = Solana._BorshEncoding.KeyedContainer<Key>(encoder: self)
-      return KeyedEncodingContainer(container)
+      // Borsh doesn't support keyed containers
+      fatalError("Keyed containers are not supported in Borsh encoding")
     }
     
     /// Creates an unkeyed encoding container.
     func unkeyedContainer() -> any UnkeyedEncodingContainer {
-      let container = Solana._BorshEncoding.UnkeyedContainer(encoder: self)
+      let container = Solana._Borsh.UnkeyedContainer(encoder: self)
       return container
     }
     
     /// Creates a single-value encoding container.
     func singleValueContainer() -> any SingleValueEncodingContainer {
-      let container = Solana._BorshEncoding.SingleValueContainer(encoder: self)
+      let container = Solana._Borsh.SingleValueContainer(encoder: self)
       return container
     }
   }

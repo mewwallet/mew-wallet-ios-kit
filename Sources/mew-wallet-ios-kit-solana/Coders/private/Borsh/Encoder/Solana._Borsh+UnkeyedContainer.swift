@@ -7,11 +7,11 @@
 
 import Foundation
 
-extension Solana._BorshEncoding {
+extension Solana._Borsh {
     /// A simple unkeyed encoding container for Borsh serialization.
     internal struct UnkeyedContainer: Swift.UnkeyedEncodingContainer {
         /// The encoder this container belongs to.
-        let encoder: Solana._BorshEncoding.Encoder
+        let encoder: Solana._Borsh.Encoder
 
         /// The coding path for this container.
         var codingPath: [any CodingKey] { encoder.codingPath }
@@ -20,7 +20,7 @@ extension Solana._BorshEncoding {
         var count: Int { 0 } // We don't track count in this simple implementation
 
         /// Initializes a new unkeyed container.
-        init(encoder: Solana._BorshEncoding.Encoder) {
+        init(encoder: Solana._Borsh.Encoder) {
             self.encoder = encoder
         }
 
@@ -109,38 +109,43 @@ extension Solana._BorshEncoding {
         }
 
         mutating func encode<T>(_ value: T) throws where T : Encodable {
-            let nestedEncoder = Solana._BorshEncoding.Encoder(
+            guard let data = value as? Data else {
+              if let array = value as? [Any] {
+                try self.encode(array.count)
+              }
+              // Encode using nested encoder
+              let encoder = Solana._Borsh.Encoder(
                 codingPath: codingPath,
                 userInfo: encoder.userInfo,
                 storage: encoder.storage
-            )
-            try value.encode(to: nestedEncoder)
+              )
+              try value.encode(to: encoder)
+              return
+            }
+
+            // Directly encode raw data
+            self.encoder.storage.append(data)
         }
 
         // MARK: - Required protocol methods (simplified)
 
         mutating func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type) -> Swift.KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
-            let nestedEncoder = Solana._BorshEncoding.Encoder(
-                codingPath: codingPath,
-                userInfo: encoder.userInfo,
-                storage: encoder.storage
-            )
-            let container = Solana._BorshEncoding.KeyedContainer<NestedKey>(encoder: nestedEncoder)
-            return KeyedEncodingContainer(container)
+            // Borsh doesn't support keyed containers
+            fatalError("Keyed containers are not supported in Borsh encoding")
         }
 
         mutating func nestedUnkeyedContainer() -> any UnkeyedEncodingContainer {
-            let nestedEncoder = Solana._BorshEncoding.Encoder(
+            let nestedEncoder = Solana._Borsh.Encoder(
                 codingPath: codingPath,
                 userInfo: encoder.userInfo,
                 storage: encoder.storage
             )
-            let container = Solana._BorshEncoding.UnkeyedContainer(encoder: nestedEncoder)
+            let container = Solana._Borsh.UnkeyedContainer(encoder: nestedEncoder)
             return container
         }
 
         mutating func superEncoder() -> Swift.Encoder {
-            let nestedEncoder = Solana._BorshEncoding.Encoder(
+            let nestedEncoder = Solana._Borsh.Encoder(
                 codingPath: codingPath,
                 userInfo: encoder.userInfo,
                 storage: encoder.storage

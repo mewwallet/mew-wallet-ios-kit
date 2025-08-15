@@ -8,10 +8,7 @@
 import Foundation
 import mew_wallet_ios_kit
 
-/// удалить
-public protocol BufferLayout: Codable {
-    static var BUFFER_LENGTH: UInt64 { get }
-}
+
 
 /**
  * Solana AccountInfo struct that conforms to BufferLayout protocol.
@@ -52,14 +49,11 @@ public protocol BufferLayout: Codable {
  * - This struct follows the Solana token program's account layout specification
  */
 extension Solana {
-    public struct AccountInfo: BufferLayout, Decodable {
+    public struct AccountInfo: Codable {
         /// The total size of the AccountInfo struct in bytes when encoded in Borsh format.
         /// This matches the sum of all field sizes: 32+32+8+4+32+1+4+8+8+4+32 = 165 bytes
 
-        /// dont support
-        public static let BUFFER_LENGTH: UInt64 = 165
-
-        // Fields in correct Borsh binary order
+        // Fields in exact order matching decoder sections
         public let mint: PublicKey           // 32 bytes
         public let owner: PublicKey          // 32 bytes
         public let lamports: UInt64          // 8 bytes
@@ -118,31 +112,32 @@ extension Solana {
          * The decoding follows the exact byte positions specified in the struct documentation.
          */
         public init(from decoder: Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
+            var container = try decoder.unkeyedContainer()
             
-            // Decode fields in the order they appear in the binary data
-            mint = try container.decode(PublicKey.self, forKey: .mint)
-            owner = try container.decode(PublicKey.self, forKey: .owner)
-            lamports = try container.decode(UInt64.self, forKey: .lamports)
-            delegateOption = try container.decode(UInt32.self, forKey: .delegateOption)
+            // Decode fields in exact order matching decoder sections
+            mint = try container.decode(PublicKey.self)
+            owner = try container.decode(PublicKey.self)
+            lamports = try container.decode(UInt64.self)
+            delegateOption = try container.decode(UInt32.self)
             
             // Always read delegate field (32 bytes) regardless of option
-            let delegateKey = try container.decode(PublicKey.self, forKey: .delegate)
+            let delegateKey = try container.decode(PublicKey.self)
             
+            state = try container.decode(UInt8.self)
+            isNativeOption = try container.decode(UInt32.self)
+            isNativeRaw = try container.decode(UInt64.self)
+            delegatedAmount = try container.decode(UInt64.self)
+            closeAuthorityOption = try container.decode(UInt32.self)
+            
+            // Always read closeAuthority field (32 bytes) regardless of option
+            let closeAuthorityKey = try container.decode(PublicKey.self)
+            
+            // Set optional fields based on their option flags
             if delegateOption == 0 {
                 delegate = nil
             } else {
                 delegate = delegateKey
             }
-            
-            state = try container.decode(UInt8.self, forKey: .state)
-            isNativeOption = try container.decode(UInt32.self, forKey: .isNativeOption)
-            isNativeRaw = try container.decode(UInt64.self, forKey: .isNativeRaw)
-            delegatedAmount = try container.decode(UInt64.self, forKey: .delegatedAmount)
-            closeAuthorityOption = try container.decode(UInt32.self, forKey: .closeAuthorityOption)
-            
-            // Always read closeAuthority field (32 bytes) regardless of option
-            let closeAuthorityKey = try container.decode(PublicKey.self, forKey: .closeAuthority)
             
             if closeAuthorityOption == 0 {
                 closeAuthority = nil
@@ -156,63 +151,49 @@ extension Solana {
             }
         }
         
-        private enum CodingKeys: String, CodingKey {
-            case mint, owner, lamports, delegateOption, delegate, state, isNativeOption, isNativeRaw, delegatedAmount, closeAuthorityOption, closeAuthority
-        }
-    }
-}
-
-// delete
-public struct Buffer<T: BufferLayout>: Codable {
-    public let value: T?
-
-    public init(value: T?) {
-        self.value = value
-    }
-
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-
-        // decode parsedJSON
-        if let parsedData = try? container.decode(T.self) {
-            value = parsedData
-            return
-        }
-
-        // Try to decode as array first (format: ["base64string", "base64"])
-        if let array = try? container.decode([String].self), array.count >= 1 {
-            let base64String = array[0]
-            guard let data = Data(base64Encoded: base64String),
-                  data.count >= T.BUFFER_LENGTH else {
-                value = nil
-                return
+        /**
+         * Custom Encodable implementation for AccountInfo.
+         * 
+         * This implementation handles the specific Borsh binary layout where:
+         * - All fields are always present in the binary data (165 bytes total)
+         * - Optional fields like `delegate` and `closeAuthority` consume their full 32-byte space
+         * - The `delegateOption` and `closeAuthorityOption` flags determine if these fields are nil
+         * - The encoding follows the exact byte positions specified in the struct documentation.
+         */
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.unkeyedContainer()
+            
+            // Encode fields in exact order matching decoder sections
+            try container.encode(mint)
+            try container.encode(owner)
+            try container.encode(lamports)
+            try container.encode(delegateOption)
+            
+            // Always encode delegate field (32 bytes) regardless of option
+            // If delegate is nil, encode a zero PublicKey
+            if let delegate = delegate {
+                try container.encode(delegate)
+            } else {
+                try container.encode(Data(repeating: 0, count: 32))
             }
-            // Use the existing Borsh decoder
-            value = try? data.decodeBorsh(T.self)
-            return
-        }
-
-        // Try to decode as single string
-        if let string = try? container.decode(String.self),
-           let data = Data(base64Encoded: string),
-           data.count >= T.BUFFER_LENGTH {
-            // Use the existing Borsh decoder
-            value = try? data.decodeBorsh(T.self)
-            return
-        }
-
-        value = nil
-    }
-    
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        if let value = value {
-            try container.encode(value)
-        } else {
-            try container.encodeNil()
+            
+            try container.encode(state)
+            try container.encode(isNativeOption)
+            try container.encode(isNativeRaw)
+            try container.encode(delegatedAmount)
+            try container.encode(closeAuthorityOption)
+            
+            // Always encode closeAuthority field (32 bytes) regardless of option
+            // If closeAuthority is nil, encode a zero PublicKey
+            if let closeAuthority = closeAuthority {
+                try container.encode(closeAuthority)
+            } else {
+                try container.encode(Data(repeating: 0, count: 32))
+            }
         }
     }
 }
+
 
 // MARK: - PublicKey Extension for Solana
 

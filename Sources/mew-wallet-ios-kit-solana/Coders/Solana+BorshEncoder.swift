@@ -22,7 +22,7 @@ extension Solana {
     // MARK: - Encoding
     public func encode<T>(_ value: T) throws -> Data where T : Encodable {
       let storage = BinaryStorage()
-      let encoder = Solana._BorshEncoding.Encoder(codingPath: [], userInfo: self.userInfo, storage: storage)
+      let encoder = Solana._Borsh.Encoder(codingPath: [], userInfo: self.userInfo, storage: storage)
       try value.encode(to: encoder)
       return storage.encodedData()
     }
