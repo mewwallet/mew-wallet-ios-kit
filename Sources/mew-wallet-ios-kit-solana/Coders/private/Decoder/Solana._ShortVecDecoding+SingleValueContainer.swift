@@ -28,7 +28,7 @@ extension Solana._ShortVecDecoding {
         return try self.decoder.data.read(&self.decoder.offset, offsetBy: 32) as! T
       case .message(.addressTableLookups) where type == Data.self:
         return try self.decoder.data.read(&self.decoder.offset, offsetBy: 32) as! T
-      case .message(.header):
+      case .message(.version):
         return try T(from: self.decoder)
       default:
         throw DecodingError.dataCorruptedError(in: self, debugDescription: "Unknown field")
@@ -40,7 +40,7 @@ extension Solana._ShortVecDecoding {
     func decode(_ type: UInt16.Type) throws -> UInt16 { try self.decodeShortVecInteger(type) }
     func decode(_ type: UInt8.Type) throws -> UInt8 {
       switch self.decoder.section {
-      case .message(.header):
+      case .message(.version):
         return self.decoder.data[self.decoder.offset]
       default:
         return try self.decoder.data.readLE(&self.decoder.offset)

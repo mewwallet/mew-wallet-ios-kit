@@ -33,6 +33,35 @@ extension Solana {
       case .v0(let message):       return message.staticAccountKeys
       }
     }
+    
+    public var compiledInstructions: [Solana.MessageCompiledInstruction] {
+      switch self {
+      case .legacy(let message):   return message.compiledInstructions
+      case .v0(let message):       return message.compiledInstructions
+      }
+    }
+    
+    public var recentBlockhash: String {
+      switch self {
+      case .legacy(let message):   return message.recentBlockhash
+      case .v0(let message):       return message.recentBlockhash
+      }
+    }
+    
+    func getAccountKeys(accountKeysFromLookups: AccountKeysFromLookups? = nil, addressLookupTableAccounts: [AddressLookupTableAccount]? = nil) throws -> MessageAccountKeys {
+      switch self {
+      case .legacy(let message):
+        return message.getAccountKeys()
+      case .v0(let message):
+        if let accountKeysFromLookups {
+          return try message.getAccountKeys(accountKeysFromLookups: accountKeysFromLookups)
+        } else if let addressLookupTableAccounts {
+          return try message.getAccountKeys(addressLookupTableAccounts: addressLookupTableAccounts)
+        } else {
+          return try message.getAccountKeys()
+        }
+      }
+    }
   }
 }
 

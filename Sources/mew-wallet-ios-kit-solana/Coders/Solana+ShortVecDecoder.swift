@@ -14,12 +14,27 @@ extension Solana {
   open class ShortVecDecoder {
     public enum DecodingStyle {
       case transaction
+      case message
+      case messageV0
+      case version
       case universal
       
-      internal var startSection: Solana._ShortVecDecoding.Decoder.Section {
+      fileprivate var startSection: Solana._ShortVecDecoding.Decoder.Section {
         switch self {
         case .transaction:      return .transaction(.signatures)
+        case .message:          return .message(.version)
+        case .messageV0:        return .message(.version)
+        case .version:          return .message(.version)
         case .universal:        return .universal
+        }
+      }
+      
+      fileprivate var isV0: Bool {
+        switch self {
+        case .messageV0, .version:
+          return true
+        default:
+          return false
         }
       }
     }
@@ -52,6 +67,9 @@ extension Solana {
         section: self.decodingStyle.startSection,
         userInfo: userInfo
       )
+      if self.decodingStyle.isV0 {
+        decoder.version = .v0
+      }
       return try T(from: decoder)
     }
   }

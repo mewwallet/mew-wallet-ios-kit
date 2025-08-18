@@ -21,7 +21,7 @@ extension Solana {
       var key: CompiledKeyMeta
     }
     
-    enum Error: Swift.Error {
+    enum Error: Swift.Error, Equatable {
       case invalidPayer(PublicKey)
       case invalidPublickey(PublicKey)
       case invalidProgramId(PublicKey)
@@ -62,7 +62,7 @@ extension Solana {
         return (keyMetaMap.count - 1, keyMetaMap.last!)
       }
       
-      guard let payerAddress = payer.address()?.address else {
+      guard payer.address()?.address != nil else {
         throw Solana.CompiledKeys.Error.invalidPayer(payer)
       }
       // payer
@@ -76,7 +76,7 @@ extension Solana {
       for ix in instructions {
         var (programKeyIndex, programKeyMeta) = try getOrInsertDefault(ix.programId)
         programKeyMeta.key.isInvoked = true
-        guard let programId = ix.programId.address()?.address else {
+        guard ix.programId.address()?.address != nil else {
           throw Solana.CompiledKeys.Error.invalidProgramId(ix.programId)
         }
         keyMetaMap[programKeyIndex] = programKeyMeta
@@ -85,7 +85,7 @@ extension Solana {
           var (keyMetaIndex, keyMeta) = try getOrInsertDefault(accountMeta.pubkey)
           keyMeta.key.isSigner = keyMeta.key.isSigner || accountMeta.isSigner
           keyMeta.key.isWritable = keyMeta.key.isWritable || accountMeta.isWritable
-          guard let address = accountMeta.pubkey.address()?.address else {
+          guard accountMeta.pubkey.address()?.address != nil else {
             throw Error.invalidPublickey(accountMeta.pubkey)
           }
           keyMetaMap[keyMetaIndex] = keyMeta
@@ -96,7 +96,7 @@ extension Solana {
       self.keyMetaMap = keyMetaMap
     }
     
-    public mutating func extractTableLookup(_ lookupTable: AddressLookupTableAccount) throws -> (MessageAddressTableLookup, AccountKeysFromLookups)? {
+    public mutating func extractTableLookup(_ lookupTable: AddressLookupTableAccount) throws -> (tableLookup: MessageAddressTableLookup, extractedAddresses: AccountKeysFromLookups)? {
       let addresses = lookupTable.state.addresses
       
       // Writable: !signer && !invoked && writable

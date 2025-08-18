@@ -14,10 +14,20 @@ extension Solana {
     public let header: MessageHeader
     
     public let accountKeys: [PublicKey]
+    public var staticAccountKeys: [PublicKey] { accountKeys }
     
     public let recentBlockhash: String
     
     public let instructions: [CompiledInstruction]
+    var compiledInstructions: [MessageCompiledInstruction] {
+      self.instructions.map {
+        .init(
+          programIdIndex: $0.programIdIndex,
+          accountKeyIndexes: $0.accounts,
+          data: $0.data
+        )
+      }
+    }
     
     public let version: Solana.Version = .legacy
     
@@ -64,6 +74,10 @@ extension Solana {
         let numWritableSignedAccounts = numSignedAccounts - Int(self.header.numReadonlySignedAccounts)
         return index < numWritableSignedAccounts
       }
+    }
+    
+    func getAccountKeys() -> MessageAccountKeys {
+      return MessageAccountKeys(staticAccountKeys: self.staticAccountKeys)
     }
   }
 }

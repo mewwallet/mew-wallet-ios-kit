@@ -67,17 +67,30 @@ extension Solana._ShortVecDecoding {
         let maskedPrefix = prefix & 0x7F
         if maskedPrefix == prefix {
           self.decoder.version = .legacy
+          self.decoder.section = .message(.header)
         } else if maskedPrefix == 0 {
           self.decoder.version = .v0
+          self.decoder.section = .message(.version)
         } else {
           self.decoder.version = .unknown(maskedPrefix)
+          self.decoder.section = .message(.version)
         }
-        self.decoder.section = .message(.header)
         return try T(from: decoder)
+        
+      case .message(.version):
+        let decoded = try T(from: self.decoder)
+        guard decoder.offset.advanced(by: 1) != decoder.data.endIndex else {
+          return decoded
+        }
+        self.section = .message(.header)
+        return decoded
         
         // Message.header
       case .message(.header):
         let decoded = try T(from: self.decoder)
+        guard decoder.offset.advanced(by: 1) != decoder.data.endIndex else {
+          return decoded
+        }
         let count = try self.decode(Int.self)
         self.section = .message(.accountKeys(.array(count: count)))
         return decoded

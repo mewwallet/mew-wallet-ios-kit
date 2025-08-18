@@ -10,7 +10,7 @@ import mew_wallet_ios_kit
 
 extension Solana {
   public struct MessageAccountKeys: Sendable, Equatable {
-    public enum Error: Swift.Error {
+    public enum Error: Swift.Error, Equatable {
       case accountIndexOverflow
       case unknownInstructionAccountKey(PublicKey)
     }
@@ -34,6 +34,18 @@ extension Solana {
     
     var count: Int {
       self.keySegments.flatMap({ $0 }).count
+    }
+    
+    public func get(keyAtIndex index: Int) -> PublicKey? {
+      var index = index
+      for segment in self.keySegments {
+        guard index < segment.count else {
+          index -= segment.count
+          continue
+        }
+        return segment[index]
+      }
+      return nil
     }
     
     public func compileInstructions(_ instructions: [TransactionInstruction]) throws -> [MessageCompiledInstruction] {

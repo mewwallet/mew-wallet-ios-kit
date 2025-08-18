@@ -25,6 +25,7 @@ extension Solana._ShortVecDecoding {
       }
       case transaction(Transaction)
       enum Message {
+        case version
         case header
         
         enum AccountKeys {
