@@ -17,7 +17,6 @@ extension Solana._Borsh {
         /// The coding path for this container.
         var codingPath: [any CodingKey] { decoder.codingPath }
 
-
         let section: Solana._Borsh.Decoder.Section
 
         /// Initializes a new single-value container.

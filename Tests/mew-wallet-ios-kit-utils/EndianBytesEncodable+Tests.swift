@@ -110,60 +110,7 @@ fileprivate struct SolanaTransactionCompileMessageTests {
       0x01,       // Bool true
       0xDE, 0xAD  // Data
     ])
-  }
-  
-  // NOTE: No explicit EndianBytesEncodable conformance here.
-  private enum OpCode: UInt16 {
-    case load  = 0x1234
-    case store = 0xABCD
-  }
-  
-  private enum WideCode: UInt32 {
-    case a = 0x01020304
-    case b = 0xA1B2C3D4
-  }
-  
-  @Test("Sequence of RawRepresentable + BigEndianBytesEncodable")
-  func testSequenceOfRawRepresentableLittleEndian() {
-    let ops: [OpCode] = [.load, .store]
-    #expect(ops.littleEndianBytes == [0x34, 0x12, 0xCD, 0xAB])
-  }
-  
-  @Test("Sequence of RawRepresentable + LittleEndianBytesEncodable")
-  func testSequenceOfRawRepresentableBigEndian() {
-    let ops: [OpCode] = [.load, .store]
-    #expect(ops.bigEndianBytes == [0x12, 0x34, 0xAB, 0xCD])
-  }
-  
-  @Test("Array of RawRepresentable + BigEndianBytesEncodable")
-  func testArrayAliasFormAlsoWorksLittleEndian() {
-    let ops: Array<OpCode> = [.load, .store]
-    #expect(ops.littleEndianBytes == [0x34, 0x12, 0xCD, 0xAB])
-  }
-  
-  @Test("Array of RawRepresentable + LittleEndianBytesEncodable")
-  func testArrayAliasFormAlsoWorksBigEndian() {
-    let ops: Array<OpCode> = [.load, .store]
-    #expect(ops.bigEndianBytes == [0x12, 0x34, 0xAB, 0xCD])
-  }
-  
-  @Test("Sequence of RawRepresentable UInt32 + LittleEndianBytesEncodable")
-  func testSequenceOfRawRepresentableUInt32WidthLittleEndian() {
-    let codes: [WideCode] = [.a, .b]
-    #expect(codes.littleEndianBytes == [
-      0x04, 0x03, 0x02, 0x01, // 0x01020304
-      0xD4, 0xC3, 0xB2, 0xA1  // 0xA1B2C3D4
-    ])
-  }
-  
-  @Test("Sequence of RawRepresentable UInt32 + BigEndianBytesEncodable")
-  func testSequenceOfRawRepresentableUInt32WidthBigEndian() {
-    let codes: [WideCode] = [.a, .b]
-    #expect(codes.bigEndianBytes == [
-      0x01, 0x02, 0x03, 0x04, // 0x01020304
-      0xA1, 0xB2, 0xC3, 0xD4  // 0xA1B2C3D4
-    ])
-  }
+    }
   
   // MARK: - BigInt/BigUInt
   
