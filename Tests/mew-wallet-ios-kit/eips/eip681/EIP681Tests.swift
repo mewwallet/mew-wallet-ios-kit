@@ -29,7 +29,8 @@ class EIP681Tests: QuickSpec {
       "ethereum:0xcccc00000000000000000000000000000000cccc@123/customfunction?key=value&key2=value2",
       "ethereum:@123/customfunction?key=value&key2=value2",
       "ethereum:/customfunction?key=value&key2=value2",
-      "ethereum:?key=value&key2=value2"
+      "ethereum:?key=value&key2=value2",
+      "ethereum:0xeeee00000000000000000000000000000000eeee@1/transfer?address=0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&uint256=9.55e6&gasPrice=1&label=mew%2011aaaaa-bbbb-cccc"
     ]
   }()
     
@@ -219,6 +220,13 @@ class EIP681Tests: QuickSpec {
       it("should parse link from test vector 15 of (\(self.testVectors.count)") {
         let code = EIP681Code(self.testVectors[14])
         expect(code).to(beNil())
+      }
+      it("should parse link from test vector 16 of (\(self.testVectors.count)") {
+        let code = EIP681Code(self.testVectors[15])
+        expect(code).toNot(beNil())
+        expect(code!.targetAddress).to(equal(Address(ethereumAddress: "0xeeee00000000000000000000000000000000eeee")))
+        expect(code!.chainID).to(equal(BigInt(1)))
+        expect(code!.recipientAddress).to(equal(Address(ethereumAddress: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")))
       }
     }
   }
