@@ -72,7 +72,7 @@ public struct PublicKey: IPublicKey, Sendable {
     self.network = network
   }
   
-  init(publicKey: Data, compressed: Bool? = false, index: UInt32, network: Network) throws {
+  package init(publicKey: Data, compressed: Bool? = false, index: UInt32, network: Network) throws {
     guard let compressed else {
       throw PublicKeyError.invalidConfiguration
     }
@@ -129,12 +129,8 @@ extension PublicKey: IKey {
   public func address() -> Address? {
     switch self.network {
     case .solana:
-      guard let alphabet = self.network.alphabet else {
-        return nil
-      }
-      guard let stringAddress: String = try? self.raw.encodeBase58(alphabet: alphabet) else {
-        return nil
-      }
+      guard let alphabet = self.network.alphabet else { return nil }
+      guard let stringAddress: String = try? self.raw.encodeBase58(alphabet: alphabet) else { return nil }
       return Address(raw: stringAddress)
     case .bitcoin(let format) where format == .segwit || format == .segwitTestnet:
       guard self.raw.count == PublicKeyConstants.compressedKeySize else { return nil }

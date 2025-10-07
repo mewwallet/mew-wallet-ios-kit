@@ -16,7 +16,7 @@ import mew_wallet_ios_tweetnacl
 public typealias PrivateKeyEth1 = PrivateKey
 
 public struct PrivateKey: Equatable, Sendable {
-  private let raw: Data
+  internal let raw: Data
   private let chainCode: Data
   private let depth: UInt8
   private let fingerprint: Data

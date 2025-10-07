@@ -157,7 +157,7 @@ extension PrivateKey {
   /// Create curve25519 public key from Ethereum private key
   /// - Returns: public key
   public func curve25519PublicKeyData() throws -> Data {
-    return try TweetNacl.keyPair(fromSecretKey: self.data()).publicKey
+    return try TweetNacl.keyPair(fromSecretKey: self.raw).publicKey
   }
 
   /// Create curve25519 private key from Ethereum private key
@@ -169,6 +169,6 @@ extension PrivateKey {
   /// Create curve25519 private key from Ethereum private key
   /// - Returns: private key
   public func curve25519PrivateKeyData() throws -> Data {
-    return try TweetNacl.keyPair(fromSecretKey: self.data()).secretKey
+    return try TweetNacl.keyPair(fromSecretKey: self.raw).secretKey
   }
 }

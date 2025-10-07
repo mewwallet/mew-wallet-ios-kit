@@ -11,7 +11,7 @@ import mew_wallet_ios_kit_utils
 
 extension Solana {
   public struct SystemProgram {
-    public enum Index: UInt32, EndianBytesEncodable {
+    public enum Index: UInt32, EndianBytesEncodable, EndianBytesDecodable, Sendable {
       case create                   = 0
       case assign                   = 1
       case transfer                 = 2
@@ -25,112 +25,6 @@ extension Solana {
       case assignWithSeed           = 10
       case transferWithSeed         = 11
       case upgradeNonceAccount      = 12
-      
-      
-      
-      //      Create: {
-      //          index: 0,
-      //          layout: BufferLayout.struct<SystemInstructionInputData['Create']>([
-      //            BufferLayout.u32('instruction'),
-      //            BufferLayout.ns64('lamports'),
-      //            BufferLayout.ns64('space'),
-      //            Layout.publicKey('programId'),
-      //          ]),
-      //        },
-      //        Assign: {
-      //          index: 1,
-      //          layout: BufferLayout.struct<SystemInstructionInputData['Assign']>([
-      //            BufferLayout.u32('instruction'),
-      //            Layout.publicKey('programId'),
-      //          ]),
-      //        },
-      //        Transfer: {
-      //          index: 2,
-      //          layout: BufferLayout.struct<SystemInstructionInputData['Transfer']>([
-      //            BufferLayout.u32('instruction'),
-      //            u64('lamports'),
-      //          ]),
-      //        },
-      //        CreateWithSeed: {
-      //          index: 3,
-      //          layout: BufferLayout.struct<SystemInstructionInputData['CreateWithSeed']>([
-      //            BufferLayout.u32('instruction'),
-      //            Layout.publicKey('base'),
-      //            Layout.rustString('seed'),
-      //            BufferLayout.ns64('lamports'),
-      //            BufferLayout.ns64('space'),
-      //            Layout.publicKey('programId'),
-      //          ]),
-      //        },
-      //        AdvanceNonceAccount: {
-      //          index: 4,
-      //          layout: BufferLayout.struct<
-      //            SystemInstructionInputData['AdvanceNonceAccount']
-      //          >([BufferLayout.u32('instruction')]),
-      //        },
-      //        WithdrawNonceAccount: {
-      //          index: 5,
-      //          layout: BufferLayout.struct<
-      //            SystemInstructionInputData['WithdrawNonceAccount']
-      //          >([BufferLayout.u32('instruction'), BufferLayout.ns64('lamports')]),
-      //        },
-      //        InitializeNonceAccount: {
-      //          index: 6,
-      //          layout: BufferLayout.struct<
-      //            SystemInstructionInputData['InitializeNonceAccount']
-      //          >([BufferLayout.u32('instruction'), Layout.publicKey('authorized')]),
-      //        },
-      //        AuthorizeNonceAccount: {
-      //          index: 7,
-      //          layout: BufferLayout.struct<
-      //            SystemInstructionInputData['AuthorizeNonceAccount']
-      //          >([BufferLayout.u32('instruction'), Layout.publicKey('authorized')]),
-      //        },
-      //        Allocate: {
-      //          index: 8,
-      //          layout: BufferLayout.struct<SystemInstructionInputData['Allocate']>([
-      //            BufferLayout.u32('instruction'),
-      //            BufferLayout.ns64('space'),
-      //          ]),
-      //        },
-      //        AllocateWithSeed: {
-      //          index: 9,
-      //          layout: BufferLayout.struct<SystemInstructionInputData['AllocateWithSeed']>(
-      //            [
-      //              BufferLayout.u32('instruction'),
-      //              Layout.publicKey('base'),
-      //              Layout.rustString('seed'),
-      //              BufferLayout.ns64('space'),
-      //              Layout.publicKey('programId'),
-      //            ],
-      //          ),
-      //        },
-      //        AssignWithSeed: {
-      //          index: 10,
-      //          layout: BufferLayout.struct<SystemInstructionInputData['AssignWithSeed']>([
-      //            BufferLayout.u32('instruction'),
-      //            Layout.publicKey('base'),
-      //            Layout.rustString('seed'),
-      //            Layout.publicKey('programId'),
-      //          ]),
-      //        },
-      //        TransferWithSeed: {
-      //          index: 11,
-      //          layout: BufferLayout.struct<SystemInstructionInputData['TransferWithSeed']>(
-      //            [
-      //              BufferLayout.u32('instruction'),
-      //              u64('lamports'),
-      //              Layout.rustString('seed'),
-      //              Layout.publicKey('programId'),
-      //            ],
-      //          ),
-      //        },
-      //        UpgradeNonceAccount: {
-      //          index: 12,
-      //          layout: BufferLayout.struct<
-      //            SystemInstructionInputData['UpgradeNonceAccount']
-      //          >([BufferLayout.u32('instruction')]),
-      //        },
     }
     
     /// Public key that identifies the System program
@@ -171,11 +65,10 @@ extension Solana {
           .init(pubkey: params.basePubkey, isSigner: true, isWritable: false),
           .init(pubkey: params.toPubkey, isSigner: true, isWritable: true),
         ],
-        programId: SystemProgram.programId,
+        programId: params.programId,
         data: Index.transferWithSeed, params.lamports, params.seed.rustBytes, params.programId.data()
       )
     }
-    
     
     /**
      * Generate a transaction instruction that assigns an account to a program
@@ -199,8 +92,8 @@ extension Solana {
           .init(pubkey: params.accountPubkey, isSigner: false, isWritable: true),
           .init(pubkey: params.basePubkey, isSigner: true, isWritable: false),
         ],
-        programId: self.programId,
-        data: Index.assign, params.basePubkey.data(), params.seed.rustBytes
+        programId: params.programId,
+        data: Index.assignWithSeed, params.basePubkey.data(), params.seed.rustBytes, params.programId.data()
       )
     }
     
@@ -220,7 +113,7 @@ extension Solana {
       }
       return TransactionInstruction(
         keys: keys,
-        programId: self.programId,
+        programId: params.programId,
         data: Index.createWithSeed, params.basePubkey.data(), params.seed.rustBytes, params.lamports, params.space, params.programId.data()
       )
     }
@@ -343,7 +236,7 @@ extension Solana {
           .init(pubkey: params.accountPubkey, isSigner: true, isWritable: true)
         ],
         programId: SystemProgram.programId,
-        data: Index.allocateWithSeed, params.space
+        data: Index.allocate, params.space
       )
     }
     
@@ -359,6 +252,6 @@ extension Solana {
         programId: SystemProgram.programId,
         data: Index.allocateWithSeed, params.basePubkey.data(), params.seed.rustBytes, params.space, params.programId.data()
       )
-    } 
+    }
   }
 }
