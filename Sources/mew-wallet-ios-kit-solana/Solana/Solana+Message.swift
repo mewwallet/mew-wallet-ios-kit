@@ -16,7 +16,7 @@ extension Solana {
     public let accountKeys: [PublicKey]
     public var staticAccountKeys: [PublicKey] { accountKeys }
     
-    public let recentBlockhash: String
+    public var recentBlockhash: String
     
     public let instructions: [CompiledInstruction]
     var compiledInstructions: [MessageCompiledInstruction] {

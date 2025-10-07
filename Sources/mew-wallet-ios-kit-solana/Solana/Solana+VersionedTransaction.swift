@@ -7,6 +7,7 @@
 
 import Foundation
 import mew_wallet_ios_kit
+import mew_wallet_ios_tweetnacl
 
 /**
  * Versioned transaction class
@@ -19,10 +20,29 @@ extension Solana {
       case signerIsNotRequired(PublicKey)
     }
     public var signatures: [Data]
-    public let message: VersionedMessage
+    public private(set) var message: VersionedMessage
     
     public var version: Solana.Version {
       return message.version
+    }
+    
+    public var recentBlockhash: String {
+      get {
+        switch message {
+        case .legacy(let message):    return message.recentBlockhash
+        case .v0(let message):        return message.recentBlockhash
+        }
+      }
+      set {
+        switch message {
+        case .legacy(var message):
+          message.recentBlockhash = newValue
+          self.message = .legacy(message)
+        case .v0(var message):
+          message.recentBlockhash = newValue
+          self.message = .v0(message)
+        }
+      }
     }
     
     public init(message: VersionedMessage, signatures: [Data]? = nil) throws {
@@ -35,6 +55,19 @@ extension Solana {
         self.signatures = [Data](repeating: Data(repeating: 0x00, count: 64), count: Int(message.header.numRequiredSignatures))
       }
       self.message = message
+    }
+    
+    mutating public func sign(signer: PrivateKey) throws {
+      try self.sign(signers: [signer])
+    }
+    
+    mutating public func sign(signers: [PrivateKey]) throws {
+      let encoder = Solana.ShortVecEncoder()
+      let messageData = try encoder.encode(self.message)
+      for signer in signers {
+        let signature = try TweetNacl.sign(message: messageData, secretKey: signer.data())
+        try self.addSignature(publicKey: signer.publicKey(), signature: signature)
+      }
     }
     
     mutating public func addSignature(publicKey: PublicKey, signature: Data) throws {

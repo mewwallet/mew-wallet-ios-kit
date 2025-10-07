@@ -203,6 +203,23 @@ public enum Network: Equatable, Sendable, Hashable {
     }
   }
   
+  public func pathSuffix(index: UInt32) -> String {
+    switch self {
+    case let .custom(_, _, pathProvider, _):
+      if let pathProvider = pathProvider {
+        return pathProvider.path(.suffix, index)
+      } else {
+        return "/\(index)"
+      }
+    case .eth2Withdrawal:
+      return "/\(index)/0"
+    case .solana:
+      return "/\(index)'/0'"
+    default:
+      return "/\(index)"
+    }
+  }
+  
   public func pathPrefix() -> String {
     switch self {
     case let .custom(_, path, pathProvider, _):
