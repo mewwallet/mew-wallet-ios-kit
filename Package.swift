@@ -21,6 +21,14 @@ let package = Package(
     .library(
       name: "mew-wallet-ios-kit-bitcoin-sign",
       targets: ["mew-wallet-ios-kit-bitcoin-sign"]
+    ),
+    .library(
+      name: "mew-wallet-ios-kit-solana",
+      targets: ["mew-wallet-ios-kit-solana"]
+    ),
+    .library(
+      name: "mew-wallet-ios-kit-solana-sign",
+      targets: ["mew-wallet-ios-kit-solana-sign"]
     )
   ],
   dependencies: [

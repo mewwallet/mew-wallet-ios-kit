@@ -85,7 +85,7 @@ public struct PublicKey: IPublicKey, Sendable {
     self.network = network
   }
   
-  package init(base58: String, network: Network) throws {
+  public init(base58: String, network: Network) throws {
     guard network == .solana, let alphabet = network.alphabet else {
       throw PublicKeyError.invalidNetwork
     }

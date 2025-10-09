@@ -56,30 +56,6 @@ extension Solana {
       }
       self.message = message
     }
-    
-    mutating public func sign(signer: PrivateKey) throws {
-      try self.sign(signers: [signer])
-    }
-    
-    mutating public func sign(signers: [PrivateKey]) throws {
-      let encoder = Solana.ShortVecEncoder()
-      let messageData = try encoder.encode(self.message)
-      for signer in signers {
-        let signature = try TweetNacl.sign(message: messageData, secretKey: signer.data())
-        try self.addSignature(publicKey: signer.publicKey(), signature: signature)
-      }
-    }
-    
-    mutating public func addSignature(publicKey: PublicKey, signature: Data) throws {
-      guard signature.count == 64 else {
-        throw Error.invalidSignature
-      }
-      let signerPubkeys = message.staticAccountKeys[0..<Int(message.header.numRequiredSignatures)]
-      guard let signerIndex = signerPubkeys.firstIndex(of: publicKey) else {
-        throw Error.signerIsNotRequired(publicKey)
-      }
-      self.signatures[signerIndex] = signature
-    }
   }
 }
 

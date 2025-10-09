@@ -90,6 +90,15 @@ public struct Address: CustomDebugStringConvertible, Sendable {
     return nil
   }
   
+  public init?(solanaAddress: String) {
+    do {
+      let publicKey = try PublicKey(base58: solanaAddress, network: .solana)
+      self._address = solanaAddress
+    } catch {
+      return nil
+    }
+  }
+  
   public var debugDescription: String {
     return self._address
   }

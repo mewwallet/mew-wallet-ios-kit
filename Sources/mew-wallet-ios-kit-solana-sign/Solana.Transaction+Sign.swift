@@ -92,7 +92,7 @@ extension Solana.Transaction {
     let data = try encoder.encode(message)
     
     try signers.forEach { key in
-      let signature = try TweetNacl.sign(message: data, secretKey: key.data())
+      let signature = try TweetNacl.sign(message: data, secretKey: key.ed25519())
       try self._addSignature(signature: signature, for: key.publicKey())
     }
   }

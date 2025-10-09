@@ -39,7 +39,7 @@ extension Solana {
           .init(pubkey: params.fromPubkey, isSigner: true, isWritable: true),
           .init(pubkey: params.newAccountPubkey, isSigner: true, isWritable: true),
         ],
-        programId: SystemProgram.programId,
+        programId: self.programId,
         data: Index.create, params.lamports, params.space, params.programId.data()
       )
     }
@@ -53,7 +53,7 @@ extension Solana {
           .init(pubkey: params.fromPubkey, isSigner: true, isWritable: true),
           .init(pubkey: params.toPubkey, isSigner: false, isWritable: true),
         ],
-        programId: SystemProgram.programId,
+        programId: self.programId,
         data: Index.transfer, params.lamports
       )
     }
@@ -65,7 +65,7 @@ extension Solana {
           .init(pubkey: params.basePubkey, isSigner: true, isWritable: false),
           .init(pubkey: params.toPubkey, isSigner: true, isWritable: true),
         ],
-        programId: params.programId,
+        programId: self.programId,
         data: Index.transferWithSeed, params.lamports, params.seed.rustBytes, params.programId.data()
       )
     }
@@ -92,7 +92,7 @@ extension Solana {
           .init(pubkey: params.accountPubkey, isSigner: false, isWritable: true),
           .init(pubkey: params.basePubkey, isSigner: true, isWritable: false),
         ],
-        programId: params.programId,
+        programId: self.programId,
         data: Index.assignWithSeed, params.basePubkey.data(), params.seed.rustBytes, params.programId.data()
       )
     }
@@ -113,7 +113,7 @@ extension Solana {
       }
       return TransactionInstruction(
         keys: keys,
-        programId: params.programId,
+        programId: self.programId,
         data: Index.createWithSeed, params.basePubkey.data(), params.seed.rustBytes, params.lamports, params.space, params.programId.data()
       )
     }
@@ -189,7 +189,7 @@ extension Solana {
           .init(pubkey: Solana.SysVar.recentBlockhashes, isSigner: false, isWritable: false),
           .init(pubkey: params.authorizedPubkey, isSigner: true, isWritable: false),
         ],
-        programId: SystemProgram.programId,
+        programId: self.programId,
         data: Index.advanceNonceAccount
       )
     }
@@ -207,7 +207,7 @@ extension Solana {
           .init(pubkey: Solana.SysVar.rent, isSigner: false, isWritable: false),
           .init(pubkey: params.authorizedPubkey, isSigner: true, isWritable: false)
         ],
-        programId: SystemProgram.programId,
+        programId: self.programId,
         data: Index.withdrawNonceAccount, params.lamports
       )
     }
@@ -222,7 +222,7 @@ extension Solana {
           .init(pubkey: params.noncePubkey, isSigner: false, isWritable: true),
           .init(pubkey: params.authorizedPubkey, isSigner: true, isWritable: false),
         ],
-        programId: SystemProgram.programId,
+        programId: self.programId,
         data: Index.authorizeNonceAccount, params.newAuthorizedPubkey.data()
       )
     }
@@ -235,7 +235,7 @@ extension Solana {
         keys: [
           .init(pubkey: params.accountPubkey, isSigner: true, isWritable: true)
         ],
-        programId: SystemProgram.programId,
+        programId: self.programId,
         data: Index.allocate, params.space
       )
     }
@@ -249,7 +249,7 @@ extension Solana {
           .init(pubkey: params.accountPubkey, isSigner: false, isWritable: true),
           .init(pubkey: params.basePubkey, isSigner: true, isWritable: false)
         ],
-        programId: SystemProgram.programId,
+        programId: self.programId,
         data: Index.allocateWithSeed, params.basePubkey.data(), params.seed.rustBytes, params.space, params.programId.data()
       )
     }

@@ -624,7 +624,7 @@ fileprivate struct SolanaTransactionOtherTests {
     try tx.setSigners(signers: from.publicKey())
     let txBytes = try tx.serializeMessage()
     
-    let signature = try TweetNacl.sign(message: txBytes, secretKey: from.data())
+    let signature = try TweetNacl.sign(message: txBytes, secretKey: from.ed25519())
     try tx.addSignature(pubkey: from.publicKey(), signature: signature)
     try #expect(tx.verifySignatures() == true)
   }
@@ -648,7 +648,7 @@ fileprivate struct SolanaTransactionOtherTests {
     tx.feePayer = try from.publicKey()
     
     let txBytes = try tx.serializeMessage()
-    let signature = try TweetNacl.sign(message: txBytes, secretKey: from.data())
+    let signature = try TweetNacl.sign(message: txBytes, secretKey: from.ed25519())
     try tx.addSignature(pubkey: from.publicKey(), signature: signature)
     try #expect(tx.verifySignatures() == true)
   }
@@ -762,11 +762,11 @@ fileprivate struct SolanaTransactionOtherTests {
         let messageData = try encoder.encode(transaction.message)
         let signature1 = try TweetNacl.sign(
           message: messageData,
-          secretKey: signer1.data()
+          secretKey: signer1.ed25519()
         )
         let signature2 = try TweetNacl.sign(
           message: messageData,
-          secretKey: signer2.data()
+          secretKey: signer2.ed25519()
         )
         try transaction.addSignature(publicKey: signer2.publicKey(), signature: signature2)
         try transaction.addSignature(publicKey: signer1.publicKey(), signature: signature1)

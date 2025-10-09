@@ -134,11 +134,15 @@ extension PrivateKey: IKey {
   }
   
   public func data() throws -> Data {
+    return self.raw
+  }
+  
+  public func ed25519() throws -> Data {
     switch self.network {
     case .solana:
       return try TweetNacl.signKeyPair(seed: self.raw).secretKey
     default:
-      return self.raw
+      throw PrivateKeyError.notSupported
     }
   }
   
