@@ -92,7 +92,7 @@ public struct Address: CustomDebugStringConvertible, Sendable {
   
   public init?(solanaAddress: String) {
     do {
-      let publicKey = try PublicKey(base58: solanaAddress, network: .solana)
+      _ = try PublicKey(base58: solanaAddress, network: .solana)
       self._address = solanaAddress
     } catch {
       return nil

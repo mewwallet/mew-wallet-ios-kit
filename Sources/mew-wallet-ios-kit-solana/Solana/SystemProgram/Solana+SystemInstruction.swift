@@ -20,32 +20,7 @@ extension Solana {
       case badSeedData
       case invalidSystemProgramIndex(Solana.SystemProgram.Index)
     }
-//      /**
-//       * Decode a system instruction and retrieve the instruction type.
-//       */
-//      static decodeInstructionType(
-//        instruction: TransactionInstruction,
-//      ): SystemInstructionType {
-//        this.checkProgramId(instruction.programId);
-//
-//        const instructionTypeLayout = BufferLayout.u32('instruction');
-//        const typeIndex = instructionTypeLayout.decode(instruction.data);
-//
-//        let type: SystemInstructionType | undefined;
-//        for (const [ixType, layout] of Object.entries(SYSTEM_INSTRUCTION_LAYOUTS)) {
-//          if (layout.index == typeIndex) {
-//            type = ixType as SystemInstructionType;
-//            break;
-//          }
-//        }
-//
-//        if (!type) {
-//          throw new Error('Instruction type incorrect; not a SystemInstruction');
-//        }
-//
-//        return type;
-//      }
-//
+    
       /**
        * Decode a create account system instruction and retrieve the instruction params.
        */

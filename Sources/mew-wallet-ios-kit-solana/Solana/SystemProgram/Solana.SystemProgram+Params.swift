@@ -8,7 +8,6 @@
 import Foundation
 import mew_wallet_ios_kit
 
-
 extension Solana.SystemProgram {
   /// Create account system transaction params
   public struct CreateAccountParams: Sendable, Equatable, Hashable {

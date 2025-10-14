@@ -13,30 +13,6 @@ import mew_wallet_ios_kit
 
 @Suite("SystemProgram tests")
 fileprivate struct SystemProgramTests {
-  //  private func createTestKeys(count: Int) -> [PublicKey] {
-  //    var keys = [PublicKey]()
-  //    keys.reserveCapacity(count)
-  //
-  //    for _ in 0..<count {
-  //      try! keys.append(.unique())
-  //    }
-  //    return keys
-  //  }
-  //
-  //
-  //  private func createTestLookupTable(addresses: [PublicKey]) throws -> Solana.AddressLookupTableAccount {
-  //    return try Solana.AddressLookupTableAccount(
-  //      key: .unique(),
-  //      state: .init(
-  //        deactivationSlot: .max,
-  //        lastExtendedSlot: 0,
-  //        lastExtendedSlotStartIndex: 0,
-  //        authority: .unique(),
-  //        addresses: addresses
-  //      )
-  //    )
-  //  }
-  //
   @Test("createAccount")
   func createAccount() async throws {
     let params = try Solana.SystemProgram.CreateAccountParams(
