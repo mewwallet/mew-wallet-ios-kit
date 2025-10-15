@@ -83,6 +83,24 @@ extension PrivateKey: IPrivateKey {
     self.network = network
   }
   
+  public init?(base58: String, network: Network) {
+    guard let alphabet = network.alphabet else { return nil }
+    guard var data = try? base58.decodeBase58(alphabet: alphabet) else { return nil }
+    
+    if data.count == 64 {
+      data = Data(data.prefix(32))
+    } else {
+      guard data.count == 32 else { return nil }
+    }
+    
+    self.raw = data
+    self.chainCode = Data()
+    self.depth = 0
+    self.fingerprint = Data([0x00, 0x00, 0x00, 0x00])
+    self.index = 0
+    self.network = network
+  }
+  
   public func publicKey(compressed: Bool? = nil) throws -> PublicKey {
     let compressed = compressed ?? self.network.publicKeyCompressed
     let publicKey = try PublicKey(
