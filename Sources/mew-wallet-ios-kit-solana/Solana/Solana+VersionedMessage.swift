@@ -48,7 +48,7 @@ extension Solana {
       }
     }
     
-    func getAccountKeys(accountKeysFromLookups: AccountKeysFromLookups? = nil, addressLookupTableAccounts: [AddressLookupTableAccount]? = nil) throws -> MessageAccountKeys {
+    public func getAccountKeys(accountKeysFromLookups: AccountKeysFromLookups? = nil, addressLookupTableAccounts: [AddressLookupTableAccount]? = nil) throws -> MessageAccountKeys {
       switch self {
       case .legacy(let message):
         return message.getAccountKeys()

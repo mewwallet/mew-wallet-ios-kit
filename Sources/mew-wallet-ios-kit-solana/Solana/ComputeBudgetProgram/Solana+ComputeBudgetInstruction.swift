@@ -10,7 +10,7 @@ import mew_wallet_ios_kit
 import mew_wallet_ios_kit_utils
 
 extension Solana {
-  struct ComputeBudgetInstruction {
+  public struct ComputeBudgetInstruction {
     public enum Error: Swift.Error, Sendable, Equatable {
       case invalidInstruction(programId: PublicKey)
       case invalidKeysCount(expected: Int, actual: Int)
@@ -24,7 +24,7 @@ extension Solana {
     /**
      * Decode a compute budget instruction and retrieve the instruction type.
      */
-    static func decodeInstructionType(instruction: TransactionInstruction) throws -> Solana.ComputeBudgetProgram.Index {
+    public static func decodeInstructionType(instruction: TransactionInstruction) throws -> Solana.ComputeBudgetProgram.Index {
       guard instruction.programId == Solana.ComputeBudgetProgram.programId else {
         throw Error.invalidInstruction(programId: instruction.programId)
       }
@@ -51,7 +51,7 @@ extension Solana {
     /**
      * Decode request heap frame compute budget instruction and retrieve the instruction params.
      */
-    static func decodeRequestHeapFrame(instruction: TransactionInstruction) throws -> Solana.ComputeBudgetProgram.RequestHeapFrameParams {
+    public static func decodeRequestHeapFrame(instruction: TransactionInstruction) throws -> Solana.ComputeBudgetProgram.RequestHeapFrameParams {
       guard instruction.programId == Solana.ComputeBudgetProgram.programId else {
         throw Error.invalidInstruction(programId: instruction.programId)
       }
@@ -65,7 +65,7 @@ extension Solana {
         // 4 bytes
         DecodeContext.littleEndian(size: 1, type: UInt32.self),
       ]
-      guard bytes.count >= 5,
+      guard bytes.count == 5,
             let decoded = bytes.decode(contexts: contexts),
             decoded.count == 2 else {
         throw Error.badData
@@ -88,7 +88,7 @@ extension Solana {
         /**
          * Decode set compute unit limit compute budget instruction and retrieve the instruction params.
          */
-    static func decodeSetComputeUnitLimit(instruction: TransactionInstruction) throws -> Solana.ComputeBudgetProgram.SetComputeUnitLimitParams {
+    public static func decodeSetComputeUnitLimit(instruction: TransactionInstruction) throws -> Solana.ComputeBudgetProgram.SetComputeUnitLimitParams {
       guard instruction.programId == Solana.ComputeBudgetProgram.programId else {
         throw Error.invalidInstruction(programId: instruction.programId)
       }
@@ -102,7 +102,7 @@ extension Solana {
         // 4 bytes
         DecodeContext.littleEndian(size: 1, type: UInt32.self),
       ]
-      guard bytes.count >= 5,
+      guard bytes.count == 5,
             let decoded = bytes.decode(contexts: contexts),
             decoded.count == 2 else {
         throw Error.badData
@@ -125,7 +125,7 @@ extension Solana {
         /**
          * Decode set compute unit price compute budget instruction and retrieve the instruction params.
          */
-    static func decodeSetComputeUnitPrice(instruction: TransactionInstruction) throws -> Solana.ComputeBudgetProgram.SetComputeUnitPriceParams {
+    public static func decodeSetComputeUnitPrice(instruction: TransactionInstruction) throws -> Solana.ComputeBudgetProgram.SetComputeUnitPriceParams {
       guard instruction.programId == Solana.ComputeBudgetProgram.programId else {
         throw Error.invalidInstruction(programId: instruction.programId)
       }
@@ -139,7 +139,7 @@ extension Solana {
         // 8 bytes
         DecodeContext.littleEndian(size: 1, type: UInt64.self),
       ]
-      guard bytes.count >= 9,
+      guard bytes.count == 9,
             let decoded = bytes.decode(contexts: contexts),
             decoded.count == 2 else {
         throw Error.badData

@@ -189,7 +189,7 @@ extension PublicKey: IKey {
   }
 }
 
-// MARK: - PublicKey: Equatable
+// MARK: - PublicKey + Equatable
   
 extension PublicKey: Equatable {
   public static func == (lhs: PublicKey, rhs: PublicKey) -> Bool {
@@ -197,12 +197,16 @@ extension PublicKey: Equatable {
   }
 }
 
+// MARK: - PublicKey + Hashable
+
 extension PublicKey: Hashable {
   public func hash(into hasher: inout Hasher) {
     hasher.combine(self.raw)
     hasher.combine(self.network)
   }
 }
+
+// MARK: - PublicKey + Codable
 
 extension PublicKey: Codable {
   public init(from decoder: any Decoder) throws {
@@ -220,6 +224,19 @@ extension PublicKey: Codable {
       try container.encode(self.raw)
     default:
       break
+    }
+  }
+}
+
+// MARK: - PublicKey + CustomDebugStringConvertible
+
+extension PublicKey: CustomDebugStringConvertible {
+  public var debugDescription: String {
+    switch self.network {
+    case .solana:
+      return self.address()?.address ?? self.raw.toHexString()
+    default:
+      return self.raw.toHexString()
     }
   }
 }

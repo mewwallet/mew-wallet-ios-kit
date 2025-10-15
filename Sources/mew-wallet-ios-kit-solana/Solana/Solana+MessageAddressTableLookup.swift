@@ -34,7 +34,9 @@ extension Solana.MessageAddressTableLookup: Codable {
     var container = encoder.unkeyedContainer()
     
     try container.encode(accountKey)
-    try container.encode(writableIndexes)
-    try container.encode(readonlyIndexes)
+    try container.encode(writableIndexes.count)
+    try container.encode(Data(writableIndexes))
+    try container.encode(readonlyIndexes.count)
+    try container.encode(Data(readonlyIndexes))
   }
 }

@@ -10,13 +10,13 @@ import Foundation
 extension Solana {
   public struct MessageCompiledInstruction: Equatable, Sendable {
     /// Index into the transaction keys array indicating the program account that executes this instruction
-    let programIdIndex: UInt8
+    public let programIdIndex: UInt8
     
     /// Ordered indices into the transaction keys array indicating which accounts to pass to the program
-    let accountKeyIndexes: [UInt8]
+    public let accountKeyIndexes: [UInt8]
     
     /// The program input data
-    let data: Data
+    public let data: Data
     
     public init(programIdIndex: UInt8, accountKeyIndexes: [UInt8], data: Data?) {
       self.programIdIndex = programIdIndex
