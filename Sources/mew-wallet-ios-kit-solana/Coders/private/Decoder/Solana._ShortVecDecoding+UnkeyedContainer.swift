@@ -8,27 +8,37 @@
 import Foundation
 
 extension Solana._ShortVecDecoding {
+  /// An unkeyed decoding container tailored for Solana wire formats.
+  ///
+  /// This container:
+  /// - Walks through the binary payload using a shared `decoder.offset`.
+  /// - Drives a light state-machine (`section`) that mirrors Solana `Transaction`,
+  ///   `Message`/`MessageV0`, and their nested structures (account keys, instructions,
+  ///   address table lookups).
+  /// - Decodes shortvec (base-128 varint) for integer counts and length-prefixed fields.
   internal struct UnkeyedContainer: Swift.UnkeyedDecodingContainer {
-    /// Current coding path, inherited from the parent decoder.
+    /// Current coding path, inherited from the parent decoder (diagnostics only).
     var codingPath: [any CodingKey] { decoder.codingPath }
     
-    /// The total number of decodable elements, if known.
+    /// Total element count if known upfront (e.g. when a shortvec length was already read).
     var count: Int?
     
-    /// Boolean indicating if all elements have been decoded.
+    /// Whether the cursor has reached the logical end of this container.
     var isAtEnd: Bool {
       guard let count else { return false }
       return currentIndex >= count
     }
     
-    /// The current index into the sequence of elements.
+    /// Current logical index within this container.
     var currentIndex: Int = 0
     
+    /// Decoding state snapshot (the “sub-section” of the wire format we are in).
     var section: Solana._ShortVecDecoding.Decoder.Section
     
-    /// Parent decoder used to propagate configuration and context.
+    /// Parent decoder used for shared offset and configuration.
     private let decoder: Solana._ShortVecDecoding.Decoder
     
+    /// Initializes the container and, when possible, pre-populates `count` based on the section.
     init(decoder: Solana._ShortVecDecoding.Decoder) {
       self.section = decoder.section
       self.decoder = decoder
@@ -43,13 +53,14 @@ extension Solana._ShortVecDecoding {
       }
     }
     
-    /// Decodes the next value in the array to a `Decodable` object.
+    /// Decodes the next value in this unkeyed sequence into a `Decodable` target type.
     mutating func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
       guard !isAtEnd else {
         throw DecodingError.valueNotFound(T.self, DecodingError.Context(codingPath: codingPath, debugDescription: "Unkeyed container is at end."))
       }
       switch self.section {
-        // Transaction.signatures
+
+        // MARK: Transaction.signatures -> [Data] (N signatures, each 64 bytes)
       case .transaction(.signatures) where type == [Data].self:
         let size = try self.decode(Int.self)
         var signatures: [Data] = []
@@ -61,9 +72,9 @@ extension Solana._ShortVecDecoding {
         self.section = .transaction(.message)
         return signatures as! T
         
-        // Transaction.message
+        // MARK: Transaction.message (peek prefix to determine version; do not advance here)
       case .transaction(.message):
-        let prefix = self.decoder.data[self.decoder.offset]
+        let prefix = self.decoder.data[self.decoder.offset] // peek (no advance)
         let maskedPrefix = prefix & 0x7F
         if maskedPrefix == prefix {
           self.decoder.version = .legacy
@@ -77,6 +88,7 @@ extension Solana._ShortVecDecoding {
         }
         return try T(from: decoder)
         
+        // MARK: Message.version (consume 1 byte via nested decoding; then move to header if bytes remain)
       case .message(.version):
         let decoded = try T(from: self.decoder)
         guard decoder.offset.advanced(by: 1) != decoder.data.endIndex else {
@@ -85,24 +97,24 @@ extension Solana._ShortVecDecoding {
         self.section = .message(.header)
         return decoded
         
-        // Message.header
+        // MARK: Message.header (3 bytes: u8,u8,u8) then read accountKeys length and switch state
       case .message(.header):
         let decoded = try T(from: self.decoder)
         guard decoder.offset.advanced(by: 1) != decoder.data.endIndex else {
           return decoded
         }
-        let count = try self.decode(Int.self)
+        let count = try self.decode(Int.self) // shortvec number of account keys
         self.section = .message(.accountKeys(.array(count: count)))
         return decoded
         
-        // Message.accountKeys
+        // MARK: Message.accountKeys (read N keys of 32 bytes)
       case .message(.accountKeys(.array(let count))):
         self.decoder.section = .message(.accountKeys(.publicKey(count: count)))
         let decoded = try T(from: self.decoder)
         self.section = .message(.recentBlockhash)
         return decoded
         
-        // Message.accountKeys.publicKey
+        // MARK: Message.accountKeys.publicKey (one 32-byte key per element)
       case .message(.accountKeys(.publicKey)):
         let decoded = try T(from: self.decoder)
         currentIndex += 1
@@ -111,27 +123,27 @@ extension Solana._ShortVecDecoding {
         }
         return decoded
         
-        // Message.recentBlockhash
+        // MARK: Message.recentBlockhash (32 bytes) then instructions array length
       case .message(.recentBlockhash) where type == Data.self:
         let data: Data = try self.decoder.data.read(&self.decoder.offset, offsetBy: 32)
         let count = try self.decode(Int.self)
         self.section = .message(.instructions(.array(count: count)))
         return data as! T
         
-        // Message.instructions
+        // MARK: Message.instructions (switch to per-instruction mode)
       case .message(.instructions(.array(let count))):
         self.decoder.section = .message(.instructions(.instruction(count: count)))
         let decoded = try T(from: self.decoder)
         switch self.decoder.version {
         case .v0:
-          let count = try self.decode(Int.self)
+          let count = try self.decode(Int.self) // shortvec number of address table lookups
           self.section = .message(.addressTableLookups(.array(count: count)))
         default:
           self.section = .universal
         }
         return decoded
         
-        // Message.instructions
+        // MARK: Message.instructions.instruction (accounts indices) -> [UInt8]
       case .message(.instructions(.instruction)) where type == [UInt8].self:
         let size = try self.decode(Int.self)
         var decoded: [UInt8] = []
@@ -142,26 +154,26 @@ extension Solana._ShortVecDecoding {
         }
         return decoded as! T
         
-        // Message.instructions
+        // MARK: Message.instructions.instruction (data bytes) -> Data
       case .message(.instructions(.instruction)) where type == Data.self:
         let size = try self.decode(Int.self)
         let decoded: Data = try self.decoder.data.read(&self.decoder.offset, offsetBy: size)
         return decoded as! T
         
-        // Message.instructions
+        // MARK: Message.instructions.instruction (structured fields; bump index)
       case .message(.instructions):
         let decoded = try T(from: self.decoder)
         currentIndex += 1
         return decoded
         
-        // Message.addressTableLookups
+        // MARK: Message.addressTableLookups (enter lookup iteration)
       case .message(.addressTableLookups(.array(let count))):
         self.decoder.section = .message(.addressTableLookups(.addressTableLookups(.addressTableLookup(count: count))))
         let decoded = try T(from: self.decoder)
         self.section = .universal
         return decoded
         
-        // Message.addressTableLookups
+        // MARK: Message.addressTableLookups.addressTableLookup (first field: table pubkey)
       case .message(.addressTableLookups(.addressTableLookups(.addressTableLookup(let count)))):
         self.decoder.section = .message(.addressTableLookups(.addressTableLookups(.publicKey(count: count))))
         let decoded = try T(from: self.decoder)
@@ -169,15 +181,15 @@ extension Solana._ShortVecDecoding {
         currentIndex += 1
         return decoded
         
-        // Message.addressTableLookups
+        // MARK: Message.addressTableLookups.publicKey (consume 32-byte table address)
       case .message(.addressTableLookups(.addressTableLookups(.publicKey(let count)))):
         self.section = .message(.addressTableLookups(.addressTableLookups(.fields(count: count))))
         let decoded = try T(from: self.decoder)
         return decoded
         
-        // Message.addressTableLookups
+        // MARK: Message.addressTableLookups.fields (read shortvec indices) -> [UInt8]
       case .message(.addressTableLookups(.addressTableLookups(.fields))) where type == [UInt8].self:
-        let size = try self.decode(Int.self)
+        let size = try self.decode(Int.self) // shortvec
         var decoded: [UInt8] = []
         decoded.reserveCapacity(size)
         for _ in 0..<size {
@@ -186,7 +198,7 @@ extension Solana._ShortVecDecoding {
         }
         return decoded as! T
         
-        // Message.addressTableLookups
+        // MARK: Message.addressTableLookups (structured; bump index and exit if done)
       case .message(.addressTableLookups):
         let decoded = try T(from: self.decoder)
         currentIndex += 1
@@ -201,6 +213,7 @@ extension Solana._ShortVecDecoding {
     }
     
     // MARK: - Fixed-width integers
+    
     mutating func decode(_ type: UInt64.Type) throws -> UInt64 { try decodeShortVecInteger() }
     mutating func decode(_ type: UInt32.Type) throws -> UInt32 { try decodeShortVecInteger() }
     mutating func decode(_ type: UInt16.Type) throws -> UInt16 { try decodeShortVecInteger() }
@@ -215,7 +228,7 @@ extension Solana._ShortVecDecoding {
     }
     mutating func decode(_ type: Int.Type) throws -> Int { try decodeShortVecInteger() }
     
-    /// Decodes a shortvec (base-128 varint) integerю
+    /// Decodes a shortvec (base-128 varint) integer and returns it as `T`.
     @inline(__always)
     mutating func decodeShortVecInteger<T>(_ type: T.Type = T.self) throws -> T where T: FixedWidthInteger {
 
