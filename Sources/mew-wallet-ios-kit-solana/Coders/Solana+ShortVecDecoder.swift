@@ -21,7 +21,7 @@ extension Solana {
   /// Use `decodingStyle` to select the correct entry point for the buffer you’re decoding.
   open class ShortVecDecoder {
     // MARK: Decoding Style
-
+    
     /// Selects the entry section and versioning mode for the input buffer.
     ///
     /// - `.transaction` — Start at the top of a legacy **Transaction** (`signatures` shortvec, then message bytes).
@@ -56,9 +56,9 @@ extension Solana {
         }
       }
     }
-  
+    
     // MARK: - Properties
-
+    
     /// Arbitrary, user-supplied context passed down to nested decoders.
     ///
     /// Use this to provide auxiliary information (e.g., cluster config, program id hints)
@@ -68,12 +68,12 @@ extension Solana {
     public var decodingStyle: DecodingStyle = .transaction
     
     // MARK: - Init
-
+    
     /// Creates a new `Solana.ShortVecDecoder`.
     public init() { }
     
     // MARK: - Top-level decode
-
+    
     /// Decodes a value of the given type from Solana shortvec-encoded binary data.
     ///
     /// Sets up the low-level decoder with:

@@ -59,7 +59,7 @@ extension Solana._ShortVecDecoding {
         throw DecodingError.valueNotFound(T.self, DecodingError.Context(codingPath: codingPath, debugDescription: "Unkeyed container is at end."))
       }
       switch self.section {
-
+        
         // MARK: Transaction.signatures -> [Data] (N signatures, each 64 bytes)
       case .transaction(.signatures) where type == [Data].self:
         let size = try self.decode(Int.self)
@@ -231,32 +231,32 @@ extension Solana._ShortVecDecoding {
     /// Decodes a shortvec (base-128 varint) integer and returns it as `T`.
     @inline(__always)
     mutating func decodeShortVecInteger<T>(_ type: T.Type = T.self) throws -> T where T: FixedWidthInteger {
-
+      
       var result: T = 0
       var shift: Int = 0
-
+      
       while true {
         let byte: UInt8 = try decoder.data.readLE(&decoder.offset)
-
+        
         // add 7 low bits
         let low7 = T(byte & 0x7F)
-
+        
         // overflow guard before shifting/appending
         if shift >= T.bitWidth || (low7 != 0 && shift > T.bitWidth - 7) {
           throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "ShortVec overflow"))
         }
-
+        
         result |= (low7 &<< T(shift))
-
+        
         // if MSB not set — last byte
         if (byte & 0x80) == 0 { break }
-
+        
         shift &+= 7
         if shift >= T.bitWidth {
           throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "ShortVec overflow"))
         }
       }
-
+      
       return result
     }
     

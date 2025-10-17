@@ -9,41 +9,44 @@ import Foundation
 import mew_wallet_ios_kit_utils
 
 extension Solana._ShortVecEncoding {
-  /// A custom single value encoding container used for serializing raw values
-  /// into Bitcoin-compatible binary formats.
+  /// A single-value encoding container for serializing raw values into Solana’s
+  /// binary wire format.
   ///
-  /// This encoder is designed to support encoding of fixed-width integers and raw `Data`,
-  /// optionally prefixing them with a `VarInt` size (depending on encoder configuration).
+  /// ### What this encodes
+  /// - `Data`: appended to the output verbatim (no implicit length prefix).
+  /// - `FixedWidthInteger`:
+  ///   - **Unsigned** integers are encoded as **shortvec** (base-128 varint).
+  ///   - **Signed** integers are supported only if **non-negative** and are encoded
+  ///     via their unsigned magnitude as shortvec. Negative values are rejected.
   ///
-  /// ### Supported types:
-  /// - `Data`: Directly encoded, with optional `VarInt` size prefix.
-  /// - `FixedWidthInteger`: Encoded in little-endian format.
-  /// - `Encodable`: Encoded recursively using a nested encoder.
+  /// ### Not supported
+  /// - `Float`, `Double`, `String`, `Bool`, `nil`.
   ///
-  /// ### Limitations:
-  /// - `Float`, `Double`, `String`, `Bool`, and `nil` values are **not supported**.
-  ///
-  /// This container is typically used for individual fields in Bitcoin transactions
-  /// (e.g. script, locktime, version, witness elements).
+  /// > Note:
+  /// > Shortvec is used in Solana to encode **lengths/counts** (e.g., number of
+  /// > signatures, number of keys, instruction data length). It is **not** a
+  /// > general-purpose integer encoding for arbitrary signed values.
   struct SingleValueContainer: Swift.SingleValueEncodingContainer {
     
-    /// The current path of coding keys taken to get to this point in encoding.
+    /// The current coding path (diagnostics only).
     var codingPath: [CodingKey] { encoder.codingPath }
     
-    /// The backing encoder.
+    /// Backing encoder and output buffer.
     private let encoder: Solana._ShortVecEncoding.Encoder
     
-    /// Initializes a new single value container.
+    /// Initializes a new single-value container.
     ///
     /// - Parameter encoder: The parent encoder instance.
     init(encoder: Solana._ShortVecEncoding.Encoder) {
       self.encoder = encoder
     }
     
+    // MARK: - Generic Encodable
+    
     /// Encodes a generic `Encodable` value.
     ///
-    /// - If the value is `Data`, it's directly encoded with an optional size prefix.
-    /// - Otherwise, a nested encoder is used and the encoded result is prefixed with size.
+    /// - If the value is `Data`, it is appended as-is.
+    /// - Other `Encodable` types are **not supported** by this container.
     mutating func encode<T>(_ value: T) throws where T : Encodable {
       guard let data = value as? Data else {
         throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "Non-Data values are not supported"))
@@ -53,8 +56,9 @@ extension Solana._ShortVecEncoding {
       self.encoder.storage.append(data)
     }
     
-    // MARK: - Fixed-width integer encodings
+    // MARK: - Fixed-width integers (shortvec lengths)
     
+    // Unsigned — encode directly as shortvec (base-128 varint)
     mutating func encode(_ value: UInt64) throws { try self.encodeShortVecInteger(value) }
     mutating func encode(_ value: UInt32) throws { try self.encodeShortVecInteger(value) }
     mutating func encode(_ value: UInt16) throws { try self.encodeShortVecInteger(value) }
@@ -66,16 +70,18 @@ extension Solana._ShortVecEncoding {
     mutating func encode(_ value: Int8) throws { try self.encodeShortVecInteger(value) }
     mutating func encode(_ value: Int) throws { try self.encodeShortVecInteger(value) }
     
-    /// Encodes any fixed-width integer in little-endian format.
+    /// Encodes an **unsigned** integer using Solana's shortvec (base-128 varint).
     ///
-    /// - Parameter value: The integer to encode.
+    /// - Parameter value: The non-negative integer to encode.
+    /// - Important: This is **not** little-endian fixed-width encoding; it is a
+    ///   variable-length, continuation-bit format used for lengths/counts.
     @inline(__always)
     mutating func encodeShortVecInteger<T>(_ value: T) throws where T: FixedWidthInteger {
       var value = value
       repeat {
         var byte = UInt8(truncatingIfNeeded: value & 0x7F)
         value >>= 7
-        if value != 0 { byte |= 0x80 }
+        if value != 0 { byte |= 0x80 } // set continuation bit
         self.encoder.storage.append(byte)
       } while value != 0
     }

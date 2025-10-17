@@ -9,7 +9,7 @@
 import Foundation
 
 private enum Static {
-  static let rawQRCode = #"^(?<\#(RawQRCodeGroups.target)>0x[0-9a-fA-F]{40}|[13][a-km-zA-HJ-NP-Z1-9]{25,34}|[bB][cC]1[pPqQ][a-zA-Z0-9]{38,58})$"#
+  static let rawQRCode = #"^(?<\#(RawQRCodeGroups.target)>0x[0-9a-fA-F]{40})$"#
 }
 
 internal extension NSRegularExpression {

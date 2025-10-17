@@ -28,20 +28,20 @@ extension Solana {
   /// > This encoder is **not** JSON; it writes raw bytes in the exact order your types request.
   public final class ShortVecEncoder: @unchecked Sendable {
     // MARK: - Properties
-
+    
     /// User-provided contextual information available to nested encoders during encoding.
     ///
     /// You can use this to pass auxiliary values (e.g., cluster hints, feature flags) that
     /// custom `Encodable` implementations may consult when deciding how to encode themselves.
     public var userInfo: [CodingUserInfoKey : any Sendable] = [:]
-        
+    
     // MARK: - Init
-
+    
     /// Creates a new `ShortVecEncoder`.
     public init() { }
     
     // MARK: - Encoding
-
+    
     /// Encodes an `Encodable` value into Solana **shortvec-compatible** binary `Data`.
     ///
     /// - Parameter value: The value to encode.

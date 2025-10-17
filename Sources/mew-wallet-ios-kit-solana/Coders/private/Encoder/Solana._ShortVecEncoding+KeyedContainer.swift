@@ -9,10 +9,20 @@ import Foundation
 import mew_wallet_ios_kit_utils
 
 extension Solana._ShortVecEncoding {
+  /// A keyed encoding container that intentionally **does not support** keyed encoding
+  /// for Solana’s positional wire formats.
+  ///
+  /// Solana transactions/messages are strictly positional (shortvec/varint + fixed fields),
+  /// so keyed encoding is not used. This container exists to satisfy the `Encoder`
+  /// protocol surface and will throw for all encode operations.
+  ///
+  /// If your type requires encoding, use the `UnkeyedContainer` (for ordered fields)
+  /// or `SingleValueContainer` (for scalars/fixed-size blobs) instead.
   struct KeyedContainer<Key: CodingKey>: Swift.KeyedEncodingContainerProtocol {
+    /// The current coding path (diagnostics only).
     var codingPath: [any CodingKey] { encoder.codingPath }
     
-    /// The parent encoder used to access configuration and binary output buffer.
+    /// The parent encoder used to access configuration and the binary output buffer.
     private let encoder: Solana._ShortVecEncoding.Encoder
     
     /// Initializes a new keyed encoding container.
@@ -22,11 +32,14 @@ extension Solana._ShortVecEncoding {
       self.encoder = encoder
     }
     
+    // MARK: - Generic Encodable
+    
+    /// Keyed encoding is not supported for Solana positional formats.
     mutating func encode<T>(_ value: T, forKey key: Key) throws where T : Encodable {
       throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "KeyedContainer is not supported"))
     }
     
-    // MARK: - Fixed-Width Integer Support
+    // MARK: - Fixed-Width Integer Support (unsupported in keyed form)
     
     mutating func encode(_ value: UInt64, forKey key: Key) throws { try encodeFixedWidthInteger(value, for: key) }
     mutating func encode(_ value: UInt32, forKey key: Key) throws { try encodeFixedWidthInteger(value, for: key) }
@@ -39,13 +52,13 @@ extension Solana._ShortVecEncoding {
     mutating func encode(_ value: Int8, forKey key: Key) throws { try encodeFixedWidthInteger(value, for: key) }
     mutating func encode(_ value: Int, forKey key: Key) throws { try encodeFixedWidthInteger(value, for: key) }
     
-    /// Encodes a fixed-width integer unless the key is `"n"` (which is ignored).
+    /// Keyed fixed-width integer encoding is not supported; Solana wire format is positional.
     @inline(__always)
     mutating func encodeFixedWidthInteger<T>(_ value: T, for key: Key) throws where T: FixedWidthInteger {
       throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "KeyedContainer is not supported"))
     }
     
-    // MARK: - Unsupported Encodings
+    // MARK: - Unsupported Encodings (keyed)
     
     mutating func encode(_ value: Float, forKey key: Key) throws {
       throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "KeyedContainer is not supported"))
@@ -67,7 +80,7 @@ extension Solana._ShortVecEncoding {
       throw EncodingError.invalidValue("", EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "KeyedContainer is not supported"))
     }
     
-    // MARK: - Nested Containers
+    // MARK: - Nested Containers (explicitly unsupported to prevent misuse)
     
     mutating func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: Key) -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
       return KeyedEncodingContainer(KeyedContainer<NestedKey>(encoder: encoder))

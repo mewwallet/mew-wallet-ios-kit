@@ -9,51 +9,55 @@ import Foundation
 import mew_wallet_ios_kit_utils
 
 extension Solana._ShortVecEncoding {
-  /// A custom implementation of `Swift.Encoder` used to encode Bitcoin-specific structures
-  /// (e.g. transactions, scripts, PSBTs) into binary format with fine control over size encoding.
+  /// A low-level binary encoder that conforms to `Swift.Encoder` and targets
+  /// Solana's shortvec/varint-oriented wire format (e.g., Transaction, Message,
+  /// MessageV0, and instruction payloads).
   ///
-  /// This encoder works with `KeyedContainer`, `UnkeyedContainer`, and `SingleValueContainer`
-  /// tailored to the Bitcoin serialization format. It supports `varInt` or disabled size prefixes.
+  /// This encoder provides:
+  /// - `KeyedContainer` — for structured, field-addressable records (rare in Solana wire paths).
+  /// - `UnkeyedContainer` — for ordered sequences (arrays, instruction lists, indices).
+  /// - `SingleValueContainer` — for scalars and fixed-size byte slices.
   ///
-  /// This class is not intended for general-purpose encoding; it assumes low-level control over
-  /// output structure and is tightly coupled to Bitcoin's serialization rules.
+  /// It is *not* a general-purpose encoder; it assumes tight control over the
+  /// binary layout (little-endian where applicable) and Solana’s **shortvec**
+  /// (base-128 varint) length encoding for collections.
   ///
-  /// - Important: Use only in conjunction with `Bitcoin.Encoder`.
+  /// - Important: Use this in conjunction with Solana-specific containers
+  ///   in `Solana._ShortVecEncoding` and `BinaryStorage` to ensure deterministic layout.
   internal final class Encoder: Swift.Encoder {
-    /// The current coding path for nested container resolution.
+    /// Current coding path used for diagnostics and nested container resolution.
     let codingPath: [any CodingKey]
     
-    /// Any user-provided metadata or configuration during encoding.
+    /// Arbitrary user information passed through the encoding process.
     let userInfo: [CodingUserInfoKey : Any]
     
-    /// The backing storage where encoded bytes are collected.
+    /// Backing storage collecting encoded bytes (appended in-order).
     let storage: BinaryStorage
     
-    /// Initializes a new encoder instance.
+    /// Initializes a new shortvec-aware encoder.
     ///
     /// - Parameters:
-    ///   - codingPath: The initial coding path for nested containers.
-    ///   - userInfo: Any contextual information for encoding.
-    ///   - storage: The output data storage buffer.
-    ///   - sizeEncodingFormat: The strategy used for encoding size prefixes (e.g. `.varInt`).
+    ///   - codingPath: Initial coding path (usually empty).
+    ///   - userInfo: Arbitrary user info for downstream customization.
+    ///   - storage: The output byte buffer where encoded data is appended.
     init(codingPath: [any CodingKey], userInfo: [CodingUserInfoKey : Any], storage: BinaryStorage) {
       self.codingPath = codingPath
       self.userInfo = userInfo
       self.storage = storage
     }
     
-    /// Creates a keyed encoding container.
+    /// Returns a keyed encoding container for encoding field-addressable records.
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key : CodingKey {
       let container = Solana._ShortVecEncoding.KeyedContainer<Key>(encoder: self)
       return KeyedEncodingContainer(container)
     }
     
-    /// Creates an unkeyed encoding container.
+    /// Returns an unkeyed encoding container for encoding ordered sequences.
     func unkeyedContainer() -> any UnkeyedEncodingContainer {
       return Solana._ShortVecEncoding.UnkeyedContainer(encoder: self, key: self.codingPath.last)
     }
     
-    /// Creates a single-value encoding container.
+    /// Returns a single-value encoding container for encoding scalars or fixed-size blobs.
     func singleValueContainer() -> any SingleValueEncodingContainer {
       return Solana._ShortVecEncoding.SingleValueContainer(encoder: self)
     }

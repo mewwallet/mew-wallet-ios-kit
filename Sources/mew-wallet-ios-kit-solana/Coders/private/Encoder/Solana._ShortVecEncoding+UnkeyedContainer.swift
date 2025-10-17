@@ -8,49 +8,55 @@
 import Foundation
 
 extension Solana._ShortVecEncoding {
-  /// A custom unkeyed encoding container for serializing sequences in Bitcoin-specific binary format.
+  /// An unkeyed encoding container for serializing ordered sequences in Solana’s
+  /// positional wire format.
   ///
-  /// This is used to encode arrays (e.g., inputs, outputs, witness data) in the Bitcoin transaction or PSBT format.
-  /// It appends each element to the encoder’s binary `Storage`, optionally prepending length information using VarInt.
+  /// ### What this container does
+  /// - Appends each element **in order** to the shared output `storage`.
+  /// - Provides helpers to encode **shortvec** (base-128 varint) for integer *lengths/counts*.
+  /// - Leaves responsibility for *where* a shortvec length must be emitted to the caller
+  ///   (this container does **not** auto-prefix a length for you).
   ///
-  /// ### Supported:
-  /// - `Data`: Encoded with optional size prefix depending on encoder configuration.
-  /// - `FixedWidthInteger`: Encoded in little-endian binary format.
-  /// - `Encodable`: Recursively encoded via nested `Encoder`.
+  /// ### Supported element types
+  /// - `Data` — appended verbatim (no implicit length prefix).
+  /// - Fixed-width integers —
+  ///   - **Unsigned**: encoded as **shortvec** (base-128 varint).
+  ///   - **Signed**: only if **non-negative**, encoded via their unsigned magnitude as shortvec.
   ///
-  /// ### Not supported:
+  /// ### Not supported
   /// - `Float`, `Double`, `String`, `Bool`, `nil`
-  ///
-  /// ### Special cases:
-  /// - If the container's `key` is `"script_witnesses"`, it prepends the count as a VarInt.
+  /// - Arbitrary `Encodable` values (to avoid format ambiguity). Use higher-level APIs or
+  ///   switch to the appropriate container explicitly.
   struct UnkeyedContainer: Swift.UnkeyedEncodingContainer {
-    /// The current path of coding keys taken to get to this container.
+    /// The current path of coding keys associated with this container (diagnostics only).
     var codingPath: [any CodingKey] { encoder.codingPath }
     
-    /// The key that led to the creation of this unkeyed container (used to determine encoding rules).
+    /// The key that resulted in creating this container (may be used by higher-level code).
     let key: (any CodingKey)?
     
-    /// The number of elements encoded so far.
+    /// Number of elements encoded so far (increments **once per element**).
     var count: Int = 0
     
-    /// The parent encoder.
+    /// The parent encoder and backing storage.
     private let encoder: Solana._ShortVecEncoding.Encoder
     
     /// Initializes a new unkeyed container.
     ///
     /// - Parameters:
     ///   - encoder: The parent encoder instance.
-    ///   - key: The coding key that created this container (optional).
+    ///   - key: The coding key that created this container (optional, for diagnostics).
     init(encoder: Solana._ShortVecEncoding.Encoder, key: (any CodingKey)?) {
       self.encoder = encoder
       self.key = key
     }
     
-    /// Encodes a generic `Encodable` element into the container.
+    // MARK: - Generic Encodable
+    
+    /// Encodes a generic `Encodable` element.
     ///
-    /// - If it's `Data`, it's encoded directly with an optional size prefix.
-    /// - Otherwise, it's recursively encoded using a nested encoder.
-    /// - Special case: If the container is `"script_witnesses"`, writes a VarInt prefix for count.
+    /// - Important: Only `Data` is accepted here to avoid accidental, format-breaking recursion.
+    ///   Use explicit integer methods for shortvec lengths, or construct nested containers
+    ///   intentionally at higher levels.
     mutating func encode<T>(_ value: T) throws where T : Encodable {
       guard let data = value as? Data else {
         if let array = value as? [Any] {
@@ -70,7 +76,7 @@ extension Solana._ShortVecEncoding {
       self.encoder.storage.append(data)
     }
     
-    // MARK: - Fixed-width integer encoding
+    // MARK: - Fixed-width integer encoding (shortvec for lengths)
     
     mutating func encode(_ value: UInt64) throws { try self.encodeShortVecInteger(value) }
     mutating func encode(_ value: UInt32) throws { try self.encodeShortVecInteger(value) }
@@ -83,7 +89,10 @@ extension Solana._ShortVecEncoding {
     mutating func encode(_ value: Int8) throws { try self.encodeShortVecInteger(value) }
     mutating func encode(_ value: Int) throws { try self.encodeShortVecInteger(value) }
     
-    /// Encodes a shortVec integer in little-endian format and increments `count`.
+    /// Encodes an **unsigned** integer using Solana shortvec (base-128 varint).
+    ///
+    /// - Important: This is **not** fixed-width little-endian; it is a variable-length
+    ///   format used for lengths/counts. Emit it **only** where Solana specifies a shortvec.
     @inline(__always)
     mutating func encodeShortVecInteger<T>(_ value: T) throws where T: FixedWidthInteger {
       var value = value
@@ -120,15 +129,19 @@ extension Solana._ShortVecEncoding {
     
     // MARK: - Nested container support
     
+    /// Nested keyed containers are typically not used in Solana’s positional layout.
+    /// If you expose them, ensure higher-level code controls their usage precisely.
     mutating func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type) -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
       let container = KeyedContainer<NestedKey>(encoder: encoder)
       return KeyedEncodingContainer(container)
     }
     
+    /// Creates a nested unkeyed container that appends to the same output storage.
     mutating func nestedUnkeyedContainer() -> Swift.UnkeyedEncodingContainer {
       return UnkeyedContainer(encoder: encoder, key: self.key)
     }
     
+    /// Returns the parent encoder (rarely used for Solana wire output).
     mutating func superEncoder() -> Swift.Encoder {
       return encoder
     }

@@ -97,7 +97,7 @@ extension Solana._ShortVecDecoding {
     
     /// Arbitrary user information for downstream consumers.
     let userInfo: [CodingUserInfoKey: Any]
-
+    
     /// Initializes a new shortvec-aware decoder positioned at `offset` within `data`,
     /// with an initial `section` state and optional diagnostics context.
     ///

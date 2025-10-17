@@ -32,22 +32,22 @@ extension Solana._ShortVecDecoding {
     }
     
     // MARK: - Generic Decodable entry point
-
+    
     /// Dispatches to specialized implementations for Solana wire cases or falls back to type-driven decoding.
     func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
       switch self.section {
       case .message(.accountKeys) where type == Data.self:
         // Read a 32-byte slice (e.g., a public key) and return as `Data`.
         return try self.decoder.data.read(&self.decoder.offset, offsetBy: 32) as! T
-      
+        
       case .message(.addressTableLookups) where type == Data.self:
         // Read a 32-byte slice (e.g., a public key) and return as `Data`.
         return try self.decoder.data.read(&self.decoder.offset, offsetBy: 32) as! T
-      
+        
       case .message(.version):
         // Defer to the type's decoding; callers typically decode a single version byte first.
         return try T(from: self.decoder)
-      
+        
       default:
         throw DecodingError.dataCorruptedError(in: self, debugDescription: "Unknown field")
       }
@@ -88,30 +88,30 @@ extension Solana._ShortVecDecoding {
     func decodeShortVecInteger<T>(_ type: T.Type = T.self) throws -> T where T: FixedWidthInteger {
       var result: T = 0
       var shift: Int = 0
-
+      
       while true {
         // Read the next continuation byte; advances shared offset.
         let byte: UInt8 = try decoder.data.readLE(&decoder.offset)
-
+        
         // add 7 low bits
         let low7 = T(byte & 0x7F)
-
+        
         // Pre-append overflow guard.
         if shift >= T.bitWidth || (low7 != 0 && shift > T.bitWidth - 7) {
           throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "ShortVec overflow"))
         }
-
+        
         result |= (low7 &<< T(shift))
-
+        
         // If MSB not set, we're done.
         if (byte & 0x80) == 0 { break }
-
+        
         shift &+= 7
         if shift >= T.bitWidth {
           throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "ShortVec overflow"))
         }
       }
-
+      
       return result
     }
     
