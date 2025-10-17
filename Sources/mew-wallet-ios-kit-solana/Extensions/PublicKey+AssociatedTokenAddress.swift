@@ -51,7 +51,7 @@ extension PublicKey {
     associatedTokenProgramId: PublicKey = Solana.AssociatedTokenProgram.programId) throws(AssociatedTokenError) -> PublicKey {
       if !allowOwnerOffCurve {
         do {
-          guard try TweetNacl.isOnCurve(publicKey: self.data()) else { throw AssociatedTokenError.ownerOffCurve }
+          guard try self.isOnCurve else { throw AssociatedTokenError.ownerOffCurve }
         } catch let error as AssociatedTokenError {
           throw error
         } catch {
