@@ -167,7 +167,7 @@ package.targets.append(
   )
 )
 
-// MARK: mew-wallet-ios-solana-sign-tests
+// MARK: mew-wallet-ios-kit-utils-tests
 package.targets.append(
   .testTarget(
     name: "mew-wallet-ios-kit-utils-tests",
