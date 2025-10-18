@@ -36,8 +36,7 @@ let package = Package(
     .package(url: "https://github.com/attaswift/BigInt.git", from: "5.5.0"),
     .package(url: "https://github.com/mewwallet/mew-wallet-ios-secp256k1.git", exact: "1.0.4"),
     .package(url: "https://github.com/mewwallet/bls-eth-swift.git", exact: "1.0.2"),
-//    .package(url: "https://github.com/mewwallet/mew-wallet-ios-tweetnacl.git", .upToNextMajor(from: "1.0.2")),
-    .package(url: "https://github.com/mewwallet/mew-wallet-ios-tweetnacl.git", branch: "feature/solana"),
+    .package(url: "https://github.com/mewwallet/mew-wallet-ios-tweetnacl.git", .upToNextMajor(from: "1.0.4")),
     .package(url: "https://github.com/Quick/Quick.git", .upToNextMajor(from: "3.0.0")),
     .package(url: "https://github.com/Quick/Nimble.git", .upToNextMajor(from: "9.0.0"))
   ],
