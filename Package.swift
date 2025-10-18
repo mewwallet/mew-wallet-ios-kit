@@ -129,7 +129,7 @@ package.targets.append(
     dependencies: [
       "mew-wallet-ios-kit-bitcoin-sign"
     ],
-    path: "Tests/mew-wallet-ios-kit-bitcoin-sign-tests"
+    path: "Tests/mew-wallet-ios-kit-bitcoin-sign"
   )
 )
 

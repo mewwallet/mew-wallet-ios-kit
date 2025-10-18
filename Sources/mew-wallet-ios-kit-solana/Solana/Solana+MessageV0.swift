@@ -9,31 +9,64 @@ import Foundation
 import mew_wallet_ios_kit
 
 extension Solana {
-  /// List of instructions to be processed atomically
+  /// Versioned (v0) message: an atomic list of instructions with static keys
+  /// plus Address Lookup Table (ALT) lookups.
+  ///
+  /// Layout on the wire (v0):
+  /// - 1 byte: version prefix (0x80 | 0)
+  /// - `MessageHeader`
+  /// - shortvec<`PublicKey`> static account keys
+  /// - `recentBlockhash` (32 bytes)
+  /// - shortvec<`MessageCompiledInstruction`> instructions
+  /// - shortvec<`MessageAddressTableLookup`> address table lookups
   public struct MessageV0: Equatable, Sendable {
+    // MARK: Errors
     enum Error: Swift.Error, Equatable {
+      /// The supplied `AccountKeysFromLookups` didn’t match the total indices
+      /// referenced by `addressTableLookups`.
       case mismatchInNumberOfAccountKeysFromLookups
+      /// Caller requested keys but didn’t provide lookups nor tables, while
+      /// `addressTableLookups` isn’t empty.
       case accountKeysAddressTableLookupsWereNotResolved
+      /// A lookup referenced a table that wasn’t provided.
       case missingTableKey(PublicKey)
+      /// A lookup referenced an index outside the table’s address array.
       case missingAddress(index: UInt8, key: PublicKey)
     }
+    
+    // MARK: Header & keys
+    
+    /// Compact counts describing signer/read-only segments for **static** keys.
     public let header: MessageHeader
     
+    /// The “static” account keys carried inline in the message.
+    /// (These include all signers; ALT-derived keys are never signers.)
     public let staticAccountKeys: [PublicKey]
     
+    /// The recent blockhash (base58), used for freshness/expiry.
     public var recentBlockhash: String
     
+    /// Program-invocation list, already compiled to index form.
     public let compiledInstructions: [MessageCompiledInstruction]
     
+    /// Lookups to load extra accounts from Address Lookup Tables (ALTs).
+    /// The loaded keys get appended after `staticAccountKeys` in this order:
+    /// first all writable lookup keys, then all read-only lookup keys.
     public var addressTableLookups: [MessageAddressTableLookup]
     
+    /// Version discriminator for this message (always `.v0` here).
     public let version: Solana.Version = .v0
     
+    // MARK: Derived counts
+    
+    /// Total number of ALT-derived keys referenced by all lookups.
     var numAccountKeysFromLookups: Int {
       return addressTableLookups.reduce(into: 0) { partialResult, lookup in
         partialResult += lookup.readonlyIndexes.count + lookup.writableIndexes.count
       }
     }
+    
+    // MARK: Init
     
     public init(header: MessageHeader, staticAccountKeys: [PublicKey], recentBlockhash: String, compiledInstructions: [MessageCompiledInstruction], addressTableLookups: [MessageAddressTableLookup]) {
       self.header = header
@@ -43,6 +76,8 @@ extension Solana {
       self.addressTableLookups = addressTableLookups
     }
     
+    /// Convenience initializer that compiles instructions and optionally extracts
+    /// ALT lookups from provided tables.
     public init(payerKey: PublicKey, instructions: [TransactionInstruction], recentBlockhash: String, addressLookupTableAccounts: [AddressLookupTableAccount]? = nil) throws {
       var compiledKeys = try Solana.CompiledKeys(instructions: instructions, payer: payerKey)
       
@@ -76,39 +111,56 @@ extension Solana {
       )
     }
     
+    // MARK: Accessors
+    
+    /// True if the account at `index` is a signer.
+    /// (All signers live in the static segment.)
     func isAccountSigner(index: Int) -> Bool {
       return index < self.header.numRequiredSignatures
     }
     
+    /// True if the account at `index` is writable.
+    ///
+    /// For static keys, the header splits signed/unsigned into writable and
+    /// read-only tails. For ALT-derived keys, writable lookups are placed first,
+    /// followed by read-only lookups.
     func isAccountWritable(index: Int) -> Bool {
       let numSignedAccounts = header.numRequiredSignatures
       let numStaticAccountKeys = staticAccountKeys.count
       
       if index >= numStaticAccountKeys {
+        // In the lookup region: writable block first, then read-only block.
         let lookupAccountKeysIndex = index - numStaticAccountKeys
         let numWritableLookupAccountKeys = addressTableLookups.reduce(0) { count, lookup in
           count + lookup.writableIndexes.count
         }
         return lookupAccountKeysIndex < numWritableLookupAccountKeys
       } else if index >= numSignedAccounts {
+        // Unsigned static keys: compute writable prefix length.
         let unsignedAccountIndex = index - Int(numSignedAccounts)
         let numUnsignedAccounts = numStaticAccountKeys - Int(numSignedAccounts)
         let numWritableUnsignedAccounts = numUnsignedAccounts - Int(header.numReadonlyUnsignedAccounts)
         return unsignedAccountIndex < numWritableUnsignedAccounts
       } else {
+        // Signed static keys: writable prefix length.
         let numWritableSignedAccounts = numSignedAccounts - header.numReadonlySignedAccounts
         return index < numWritableSignedAccounts
       }
     }
     
+    /// Returns a `MessageAccountKeys` view, resolving ALT keys either from an
+    /// explicit set of loaded keys or by resolving from the provided tables.
     public func getAccountKeys(accountKeysFromLookups: AccountKeysFromLookups? = nil) throws -> MessageAccountKeys {
       return try self._getAccountKeys(accountKeysFromLookups: accountKeysFromLookups)
     }
     
+    /// Same as above but resolves ALT indices against the provided tables.
     public func getAccountKeys(addressLookupTableAccounts: [AddressLookupTableAccount]) throws -> MessageAccountKeys {
       return try self._getAccountKeys(addressLookupTableAccounts: addressLookupTableAccounts)
     }
     
+    /// Resolves `addressTableLookups` using the given table accounts, returning
+    /// the concatenated writable then read-only address lists.
     public func resolveAddressTableLookups(addressLookupTableAccounts: [AddressLookupTableAccount]) throws -> AccountKeysFromLookups {
       var accountKeysFromLookups = AccountKeysFromLookups()
       
@@ -137,9 +189,12 @@ extension Solana {
       return accountKeysFromLookups
     }
     
+    // MARK: Internals
+    
     private func _getAccountKeys(accountKeysFromLookups: AccountKeysFromLookups? = nil, addressLookupTableAccounts: [AddressLookupTableAccount]? = nil) throws -> MessageAccountKeys {
       let accountKeys: AccountKeysFromLookups?
       if let accountKeysFromLookups {
+        // Must match the total indices referenced by the lookups.
         guard self.numAccountKeysFromLookups == accountKeysFromLookups.writable.count + accountKeysFromLookups.readonly.count else {
           throw Error.mismatchInNumberOfAccountKeysFromLookups
         }
@@ -147,6 +202,7 @@ extension Solana {
       } else if let addressLookupTableAccounts {
         accountKeys = try self.resolveAddressTableLookups(addressLookupTableAccounts: addressLookupTableAccounts)
       } else {
+        // If we have lookups but the caller didn’t resolve or provide them, fail.
         guard self.addressTableLookups.isEmpty else {
           throw Error.accountKeysAddressTableLookupsWereNotResolved
         }
@@ -165,7 +221,7 @@ extension Solana.MessageV0: Codable {
   public init(from decoder: any Decoder) throws {
     var container = try decoder.unkeyedContainer()
     
-    // Skip version prefix
+    // Version byte (0x80 | 0) is *peeked* by your custom decoder when decoding `Solana.Version`.
     let version = try container.decode(Solana.Version.self)
     switch version {
     case .legacy:
@@ -174,7 +230,7 @@ extension Solana.MessageV0: Codable {
         .init(codingPath: [], debugDescription: "Expected versioned message but received legacy message")
       )
     case .v0:
-      // Consume version byte
+      // Now actually consume the version byte (your decoder's .version path peeks).
       _ = try container.decode(UInt8.self)
     case .unknown(let uInt8):
       throw DecodingError.typeMismatch(
@@ -182,7 +238,7 @@ extension Solana.MessageV0: Codable {
         .init(codingPath: [], debugDescription: "Expected versioned message with version 0 but found version \(uInt8)")
       )
     }
-
+    
     // Header
     self.header = try container.decode(Solana.MessageHeader.self)
     

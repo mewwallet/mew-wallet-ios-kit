@@ -9,8 +9,21 @@ import Foundation
 import mew_wallet_ios_kit
 import mew_wallet_ios_kit_utils
 
+
+// MARK: - STATUS
+// This StakeProgram module is **unfinished** and currently **not in use**.
+// It exposes only a subset of stake instructions (delegate) and comments out
+// the remaining builders until encoding/decoding is finalized.
+
 extension Solana {
-  public struct StakeProgram {
+  /// Stake program helpers and instruction builders.
+  ///
+  /// - Important: **Unfinished / Not in use.**
+  ///   Only `delegate` is currently implemented. Other instruction builders
+  ///   (`initialize`, `authorize`, `withdraw`, etc.) are stubbed in comments
+  ///   and will be added once the layouts are completed and tested.
+  /*public */package struct StakeProgram {
+    /// Stake instruction discriminators (as `u32` in Solana stake program).
     public enum Index: UInt32, EndianBytesEncodable {
       case initialize               = 0
       case authorize                = 1
@@ -94,21 +107,17 @@ extension Solana {
 //      });
     }
     
+    /// Stake program ID (`Stake11111111111111111111111111111111111111`).
     public static let programId: PublicKey = try! .init(base58: "Stake11111111111111111111111111111111111111", network: .solana)
     
-    /**
-     * Address of the stake config account which configures the rate
-     * of stake warmup and cooldown as well as the slashing penalty.
-     */
+    /// Address of the stake config account which configures stake warmup/cooldown
+    /// and slashing penalty.
     public static let stakeConfigID: PublicKey = try! .init(base58: "StakeConfig11111111111111111111111111111111", network: .solana)
     
-    /**
-     * Max space of a Stake account
-     *
-     * This is generated from the solana-stake-program StakeState struct as
-     * `StakeStateV2::size_of()`:
-     * https://docs.rs/solana-stake-program/latest/solana_stake_program/stake_state/enum.StakeStateV2.html
-     */
+    /// Maximum space of a Stake account.
+    ///
+    /// Generated from `StakeStateV2::size_of()`:
+    /// https://docs.rs/solana-stake-program/latest/solana_stake_program/stake_state/enum.StakeStateV2.html
     public static let space = 200
 
     /**
@@ -183,12 +192,22 @@ extension Solana {
 //      return transaction.add(this.initialize({stakePubkey, authorized, lockup}));
 //    }
 //
-//    /**
-//     * Generate a Transaction that delegates Stake tokens to a validator
-//     * Vote PublicKey. This transaction can also be used to redelegate Stake
-//     * to a new validator Vote PublicKey.
-//     */
-    public static func delegate(params: DelegateStakeParams) throws -> Transaction {
+    /// Generate a `Delegate` instruction transaction to delegate a stake account
+    /// to a validator's vote account.
+    ///
+    /// Accounts:
+    /// 0. `[writable]` stake account
+    /// 1. `[]`          vote account
+    /// 2. `[]`          sysvar: clock
+    /// 3. `[]`          sysvar: stake history
+    /// 4. `[]`          stake config id
+    /// 5. `[signer]`    authorized staker
+    ///
+    /// - Parameter params: `DelegateStakeParams` container.
+    /// - Returns: `Transaction` containing a single delegate instruction.
+    ///
+    /// - Note: This API is part of an **unfinished** module; subject to change.
+    /*public*/ package static func delegate(params: DelegateStakeParams) throws -> Transaction {
       return Transaction(
         instructions: [
           .init(

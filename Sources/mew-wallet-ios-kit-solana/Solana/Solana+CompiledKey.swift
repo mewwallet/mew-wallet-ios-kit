@@ -9,18 +9,39 @@ import Foundation
 import mew_wallet_ios_kit
 
 extension Solana {
+  /// Per-account flags collected while compiling a message’s account key set.
+  ///
+  /// - `isSigner`: This account must sign the transaction (fee-payer, owner, multisig signers, etc.).
+  /// - `isWritable`: The account may be modified (lamports or data) by any instruction in the message.
+  /// - `isInvoked`: This account is a **program id** invoked by at least one instruction.
+  ///   Program ids are read-only and never sign.
   public struct CompiledKeyMeta: Sendable, Equatable {
+    /// `true` if this account must provide a signature for the transaction.
     var isSigner: Bool
+    
+    /// `true` if this account is writable in the message.
     var isWritable: Bool
+    
+    /// `true` if this account is the program id of any instruction in the message.
     var isInvoked: Bool
   }
   
+  /// A working set used to build Solana message keys:
+  /// - collects unique accounts across all instructions,
+  /// - merges flags (signer/writable/invoked),
+  /// - derives the canonical ordered key list for the message header,
+  /// - optionally extracts Address Lookup Table (ALT) indices.
   public struct CompiledKeys: Sendable, Equatable {
+    /// Entry in the “meta map” keyed by base58 address.
+    ///
+    /// - `address`: base58-encoded public key (used as a stable map key).
+    /// - `key`: merged flags across all instructions referring to this account.
     public struct MapItem: Sendable, Equatable {
       let address: String
       var key: CompiledKeyMeta
     }
     
+    /// Errors raised while building or extracting compiled keys.
     enum Error: Swift.Error, Equatable {
       case invalidPayer(PublicKey)
       case invalidPublickey(PublicKey)
@@ -30,17 +51,30 @@ extension Solana {
       case expectedAtLeastOneWritableSignerKey
       case expectedFirstWritableSignerKeyToBePayer
     }
+    /// The declared fee payer. Must be a writable signer and appear **first** among writable signers.
     public let payer: PublicKey
+    
+    /// Working set of unique accounts discovered while scanning instructions.
+    /// Order is insertion order (payer first, then program ids / accounts as discovered).
     public var keyMetaMap: [MapItem]
     
+    /// Designated initializer used by call sites that pre-built `keyMetaMap`.
     public init(payer: PublicKey, keyMetaMap: [MapItem]) {
       self.payer = payer
       self.keyMetaMap = keyMetaMap
     }
     
+    /// Scans all instructions and constructs the meta map:
+    /// - Inserts the fee payer as writable signer.
+    /// - Marks program ids as `isInvoked = true`.
+    /// - OR-merges `isSigner`/`isWritable` for each account meta encountered.
+    ///
+    /// Validates:
+    /// - `payer`, all account keys, and program ids have valid base58 string forms.
     public init(instructions: [Solana.TransactionInstruction], payer: PublicKey) throws {
       var keyMetaMap: [MapItem] = []
       
+      /// Inserts a key if missing; returns its index + current meta.
       func getOrInsertDefault(_ pubkey: PublicKey) throws -> (Int, MapItem) {
         guard let address = pubkey.address()?.address else {
           throw Solana.CompiledKeys.Error.invalidPublickey(pubkey)
@@ -62,17 +96,19 @@ extension Solana {
         return (keyMetaMap.count - 1, keyMetaMap.last!)
       }
       
+      // Payer must be valid and will be the first inserted entry.
       guard payer.address()?.address != nil else {
         throw Solana.CompiledKeys.Error.invalidPayer(payer)
       }
-      // payer
+      
+      // Mark payer as writable signer.
       var (payerKeyMetaIndex, payerKeyMeta) = try getOrInsertDefault(payer)
       payerKeyMeta.key.isSigner = true
       payerKeyMeta.key.isWritable = true
       
       keyMetaMap[payerKeyMetaIndex] = payerKeyMeta
       
-      // instructions
+      // Walk instructions: mark program ids as invoked; merge metas for accounts.
       for ix in instructions {
         var (programKeyIndex, programKeyMeta) = try getOrInsertDefault(ix.programId)
         programKeyMeta.key.isInvoked = true
@@ -96,6 +132,16 @@ extension Solana {
       self.keyMetaMap = keyMetaMap
     }
     
+    /// Attempts to extract a **MessageAddressTableLookup** from a given lookup table account.
+    ///
+    /// Rules (per v0 message spec):
+    /// - Only **non-signers** and **non-invoked** (i.e., not program ids) can be placed in lookups.
+    /// - We partition candidates by writability and produce two shortvecs of indices:
+    ///   - `writableIndexes` for writable candidates,
+    ///   - `readonlyIndexes` for read-only candidates.
+    /// - Matching addresses are **drained** (removed) from `keyMetaMap` once offloaded to a lookup.
+    ///
+    /// - Returns: `nil` if no keys were offloaded; otherwise the table lookup + drained keys.
     public mutating func extractTableLookup(_ lookupTable: AddressLookupTableAccount) throws -> (tableLookup: MessageAddressTableLookup, extractedAddresses: AccountKeysFromLookups)? {
       let addresses = lookupTable.state.addresses
       
@@ -125,10 +171,18 @@ extension Solana {
       return (lut, drained)
     }
     
+    /// Produces the message `header` and the **static** (non-lookup) account keys in canonical order:
+    /// 1) writable signers, 2) read-only signers, 3) writable non-signers, 4) read-only non-signers.
+    ///
+    /// Validates:
+    /// - There is at least one writable signer.
+    /// - The **first writable signer** is the declared fee payer.
+    /// - The number of **static** account keys does not exceed the u8 addressable range (**<= 256**).
     public func getMessageComponents() throws -> (MessageHeader, [PublicKey]) {
       let mapEntries = keyMetaMap
       
-      guard mapEntries.count <= UInt8.max else {
+      // NOTE: legacy & v0 compiled instruction account indices are `u8` (0..=255)
+      guard mapEntries.count <= 256 else {
         throw Error.maxStaticAccountKeysLengthExceeded
       }
       
@@ -140,6 +194,8 @@ extension Solana {
       guard !writableSigners.isEmpty else {
         throw Error.expectedAtLeastOneWritableSignerKey
       }
+      
+      // Preserve discovery order: payer is inserted first, so the first writable signer must be payer.
       guard writableSigners.first?.address == self.payer.address()?.address else {
         throw Error.expectedFirstWritableSignerKeyToBePayer
       }
@@ -160,10 +216,18 @@ extension Solana {
       return (header, staticAccountKeys)
     }
     
-    mutating private func drainKeysFoundInLookupTable(
-      _ addresses: [PublicKey],
-      where predicate: (CompiledKeyMeta) -> Bool
-    ) throws -> ([UInt8], [PublicKey]) {
+    /// Finds accounts present in a lookup table and drains them from the static key set.
+    ///
+    /// - Parameters:
+    ///   - addresses: The ALT addresses in on-chain order.
+    ///   - predicate: A filter over `CompiledKeyMeta` (e.g., “non-signer writable”).
+    /// - Returns:
+    ///   - The shortvec-ready list of **u8 indices** into the ALT,
+    ///   - The concrete `PublicKey`s drained from the static list.
+    ///
+    /// - Throws:
+    ///   - `maxLookupTableIndexExceeded` if a found address index does not fit in `UInt8`.
+    mutating private func drainKeysFoundInLookupTable(_ addresses: [PublicKey], where predicate: (CompiledKeyMeta) -> Bool) throws -> ([UInt8], [PublicKey]) {
       var foundIndexes: [UInt8] = []
       var drainedKeys: [PublicKey] = []
       
@@ -178,8 +242,8 @@ extension Solana {
             }
             foundIndexes.append(u8)
             drainedKeys.append(key)
-            keyMetaMap.remove(at: i) // drain
-            continue // don't advance i after removal
+            keyMetaMap.remove(at: i) // drain without advancing `i`
+            continue
           }
         }
         i += 1

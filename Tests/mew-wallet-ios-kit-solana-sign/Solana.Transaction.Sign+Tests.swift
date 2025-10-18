@@ -462,7 +462,7 @@ fileprivate struct SolanaTransactionOtherTests {
     sampleTransaction.feePayer = try tempKey.publicKey()
     sampleTransaction.signatures = try [
       .init(signature: nil, publicKey: tempKey.publicKey()),
-      .init(signature: Data(repeating: 64, count: 0x2A), publicKey: senderPublicKey),
+      .init(signature: Data(repeating: 0x2A, count: 64), publicKey: senderPublicKey),
     ]
     
     // Transactions with invalid signature and missing signature will fail sigverify and throw both.

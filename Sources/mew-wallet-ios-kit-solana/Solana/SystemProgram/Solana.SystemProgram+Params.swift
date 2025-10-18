@@ -9,21 +9,26 @@ import Foundation
 import mew_wallet_ios_kit
 
 extension Solana.SystemProgram {
-  /// Create account system transaction params
+  /// Parameters for **SystemProgram::CreateAccount**.
+  ///
+  /// Creates a brand new account owned by `programId`, funded by `fromPubkey`.
+  /// The account's data space is allocated to `space` bytes and funded with `lamports`.
+  ///
+  /// Signers: `fromPubkey` **and** `newAccountPubkey`.
   public struct CreateAccountParams: Sendable, Equatable, Hashable {
-    /// The account that will transfer lamports to the created account
+    /// Payer that transfers lamports into the new account (signer).
     public let fromPubkey: PublicKey
     
-    /// Public key of the created account
+    /// Newly created account public key (signer).
     public let newAccountPubkey: PublicKey
     
-    /// Amount of lamports to transfer to the created account
+    /// Lamports to fund the new account (usually at least rent-exempt).
     public let lamports: UInt64
     
-    /// Amount of space in bytes to allocate to the created account
+    /// Number of bytes of account data to allocate.
     public let space: UInt64
     
-    /// Public key of the program to assign as the owner of the created account
+    /// Program that will own the new account.
     public let programId: PublicKey
     
     public init(fromPubkey: PublicKey, newAccountPubkey: PublicKey, lamports: UInt64, space: UInt64, programId: PublicKey) {
@@ -37,17 +42,18 @@ extension Solana.SystemProgram {
 }
 
 extension Solana.SystemProgram {
-  /// Transfer system transaction params
+  /// Parameters for the **Transfer** system instruction.
   public struct TransferParams: Sendable, Equatable, Hashable {
-    /// Account that will transfer lamports
+    /// Account that will transfer lamports (signer).
     public let fromPubkey: PublicKey
     
-    /// Account that will receive transferred lamports
+    /// Account that will receive transferred lamports.
     public let toPubkey: PublicKey
     
-    /// Amount of lamports to transfer
+    /// Amount of lamports to transfer.
     public let lamports: UInt64
     
+    /// Creates a parameter container for `SystemProgram.transfer`.
     public init(fromPubkey: PublicKey, toPubkey: PublicKey, lamports: UInt64) {
       self.fromPubkey = fromPubkey
       self.toPubkey = toPubkey
@@ -57,14 +63,15 @@ extension Solana.SystemProgram {
 }
 
 extension Solana.SystemProgram {
-  /// Assign system transaction params
+  /// Parameters for the **Assign** system instruction.
   public struct AssignParams: Sendable, Equatable, Hashable {
-    /// Public key of the account which will be assigned a new owner
+    /// Account which will be assigned a new owner.
     public let accountPubkey: PublicKey
     
-    /// Public key of the program to assign as the owner
+    /// Program to assign as the new owner.
     public let programId: PublicKey
     
+    /// Creates a parameter container for `SystemProgram.assign`.
     public init(accountPubkey: PublicKey, programId: PublicKey) {
       self.accountPubkey = accountPubkey
       self.programId = programId
@@ -73,29 +80,30 @@ extension Solana.SystemProgram {
 }
 
 extension Solana.SystemProgram {
-  /// Create account with seed system transaction params
+  /// Parameters for the **CreateAccountWithSeed** system instruction.
   public struct CreateAccountWithSeedParams: Sendable, Equatable, Hashable {
-    /// The account that will transfer lamports to the created account
+    /// The account that will transfer lamports to the created account (fee payer & signer).
     public let fromPubkey: PublicKey
     
-    /// Public key of the created account. Must be pre-calculated with PublicKey.createWithSeed()
+    /// Public key of the created account.
     public let newAccountPubkey: PublicKey
     
-    /// Base public key to use to derive the address of the created account. Must be the same as the base key used to create `newAccountPubkey`
+    /// Base key used to derive `newAccountPubkey`.
     public let basePubkey: PublicKey
     
-    /// Seed to use to derive the address of the created account. Must be the same as the seed used to create `newAccountPubkey`
+    /// Seed used to derive `newAccountPubkey`.
     public let seed: String
     
-    /// Amount of lamports to transfer to the created account
+    /// Amount of lamports to transfer to the created account.
     public let lamports: UInt64
     
-    /// Amount of space in bytes to allocate to the created account
+    /// Amount of space (in bytes) to allocate to the created account.
     public let space: UInt64
     
-    /// Public key of the program to assign as the owner of the created account
+    /// Program to assign as the owner of the created account.
     public let programId: PublicKey
     
+    /// Creates a parameter container for `SystemProgram.createAccountWithSeed`.
     public init(fromPubkey: PublicKey, newAccountPubkey: PublicKey, basePubkey: PublicKey, seed: String, lamports: UInt64, space: UInt64, programId: PublicKey) {
       self.fromPubkey = fromPubkey
       self.newAccountPubkey = newAccountPubkey
@@ -109,20 +117,21 @@ extension Solana.SystemProgram {
 }
 
 extension Solana.SystemProgram {
-  /// Create nonce account system transaction params
+  /// Parameters for composing a **Create Nonce Account** sequence (System + Nonce init).
   public struct CreateNonceAccountParams: Sendable, Equatable, Hashable {
-    /// The account that will transfer lamports to the created nonce account
+    /// The account that will transfer lamports to the created nonce account (fee payer & signer).
     public let fromPubkey: PublicKey
     
-    /// Public key of the created nonce account
+    /// Public key of the nonce account to create.
     public let noncePubkey: PublicKey
     
-    /// Public key to set as authority of the created nonce account
+    /// Authority that will control the nonce account.
     public let authorizedPubkey: PublicKey
     
-    /// Amount of lamports to transfer to the created nonce account
+    /// Amount of lamports to transfer to the created nonce account.
     public let lamports: UInt64
     
+    /// Creates a parameter container for creating and initializing a nonce account.
     public init(fromPubkey: PublicKey, noncePubkey: PublicKey, authorizedPubkey: PublicKey, lamports: UInt64) {
       self.fromPubkey = fromPubkey
       self.noncePubkey = noncePubkey
@@ -134,26 +143,27 @@ extension Solana.SystemProgram {
 
 
 extension Solana.SystemProgram {
-  /// Create nonce account with seed system transaction params
+  /// Parameters for **Create Nonce Account With Seed** sequence.
   public struct CreateNonceAccountWithSeedParams: Sendable, Equatable, Hashable {
-    /// The account that will transfer lamports to the created nonce account
+    /// The account that will transfer lamports to the created nonce account (fee payer & signer).
     public let fromPubkey: PublicKey
     
-    /// Public key of the created nonce account
+    /// Public key of the nonce account to create (derived with base+seed).
     public let noncePubkey: PublicKey
     
-    /// Public key to set as authority of the created nonce account
+    /// Authority that will control the nonce account.
     public let authorizedPubkey: PublicKey
     
-    /// Amount of lamports to transfer to the created nonce account
+    /// Amount of lamports to transfer to the created nonce account.
     public let lamports: UInt64
     
-    /// Base public key to use to derive the address of the nonce account
+    /// Base key used to derive the nonce account address.
     public let basePubkey: PublicKey;
     
-    /// Seed to use to derive the address of the nonce account
+    /// Seed used to derive the nonce account address.
     public let seed: String
     
+    /// Creates a parameter container for creating and initializing a seeded nonce account.
     public init(fromPubkey: PublicKey, noncePubkey: PublicKey, authorizedPubkey: PublicKey, lamports: UInt64, basePubkey: PublicKey, seed: String) {
       self.fromPubkey = fromPubkey
       self.noncePubkey = noncePubkey
@@ -168,14 +178,15 @@ extension Solana.SystemProgram {
 
 
 extension Solana.SystemProgram {
-  /// Initialize nonce account system instruction params
+  /// Parameters for the **Initialize Nonce Account** instruction.
   public struct InitializeNonceParams: Sendable, Equatable, Hashable {
-    /// Nonce account which will be initialized
+    /// Nonce account to initialize.
     public let noncePubkey: PublicKey
     
-    /// Public key to set as authority of the initialized nonce account
+    /// Authority that will control the initialized nonce account.
     public let authorizedPubkey: PublicKey
     
+    /// Creates a parameter container for `SystemProgram.nonceInitialize`.
     public init(noncePubkey: PublicKey, authorizedPubkey: PublicKey) {
       self.noncePubkey = noncePubkey
       self.authorizedPubkey = authorizedPubkey
@@ -184,14 +195,15 @@ extension Solana.SystemProgram {
 }
 
 extension Solana.SystemProgram {
-  /// Advance nonce account system instruction params
+  /// Parameters for the **Advance Nonce** instruction.
   public struct AdvanceNonceParams: Sendable, Equatable, Hashable {
-    /// Nonce account
+    /// Nonce account whose nonce will be advanced.
     public let noncePubkey: PublicKey;
     
-    /// Public key of the nonce authority
+    /// Current nonce authority (must sign).
     public let authorizedPubkey: PublicKey;
     
+    /// Creates a parameter container for `SystemProgram.nonceAdvance`.
     public init(noncePubkey: PublicKey, authorizedPubkey: PublicKey) {
       self.noncePubkey = noncePubkey
       self.authorizedPubkey = authorizedPubkey
@@ -200,20 +212,21 @@ extension Solana.SystemProgram {
 }
 
 extension Solana.SystemProgram {
-  /// Withdraw nonce account system transaction params
+  /// Parameters for the **Withdraw Nonce** instruction.
   public struct WithdrawNonceParams: Sendable, Equatable, Hashable {
-    /// Nonce account
+    /// Nonce account to withdraw from.
     public let noncePubkey: PublicKey
     
-    /// Public key of the nonce authority
+    /// Current nonce authority (must sign).
     public let authorizedPubkey: PublicKey
     
-    /// Public key of the account which will receive the withdrawn nonce account balance
+    /// Recipient of withdrawn lamports.
     public let toPubkey: PublicKey
     
-    /// Amount of lamports to withdraw from the nonce account
+    /// Amount of lamports to withdraw from the nonce account.
     public let lamports: UInt64
     
+    /// Creates a parameter container for `SystemProgram.nonceWithdraw`.
     public init(noncePubkey: PublicKey, authorizedPubkey: PublicKey, toPubkey: PublicKey, lamports: UInt64) {
       self.noncePubkey = noncePubkey
       self.authorizedPubkey = authorizedPubkey
@@ -224,17 +237,18 @@ extension Solana.SystemProgram {
 }
 
 extension Solana.SystemProgram {
-  /// Authorize nonce account system transaction params
+  /// Parameters for the **Authorize Nonce** instruction.
   public struct AuthorizeNonceParams: Sendable, Equatable, Hashable {
-    /// Nonce account
+    /// Nonce account to update.
     public let noncePubkey: PublicKey
     
-    /// Public key of the current nonce authority
+    /// Current nonce authority (must sign).
     public let authorizedPubkey: PublicKey
     
-    /// Public key to set as the new nonce authority
+    /// New authority to set on the nonce account.
     public let newAuthorizedPubkey: PublicKey
     
+    /// Creates a parameter container for `SystemProgram.nonceAuthorize`.
     public init(noncePubkey: PublicKey, authorizedPubkey: PublicKey, newAuthorizedPubkey: PublicKey) {
       self.noncePubkey = noncePubkey
       self.authorizedPubkey = authorizedPubkey
@@ -244,14 +258,15 @@ extension Solana.SystemProgram {
 }
 
 extension Solana.SystemProgram {
-  /// Allocate account system transaction params
+  /// Parameters for the **Allocate** system instruction.
   public struct AllocateParams: Sendable, Equatable, Hashable {
-    /// Account to allocate
+    /// Account to allocate additional space for.
     public let accountPubkey: PublicKey
     
-    /// Amount of space in bytes to allocate
+    /// Amount of space (in bytes) to allocate.
     public let space: UInt64
     
+    /// Creates a parameter container for `SystemProgram.allocate`.
     public init(accountPubkey: PublicKey, space: UInt64) {
       self.accountPubkey = accountPubkey
       self.space = space
@@ -260,23 +275,24 @@ extension Solana.SystemProgram {
 }
 
 extension Solana.SystemProgram {
-  /// Allocate account with seed system transaction params
+  /// Parameters for the **AllocateWithSeed** system instruction.
   public struct AllocateWithSeedParams: Sendable, Equatable, Hashable {
-    /// Account to allocate
+    /// Account to allocate (derived account).
     public let accountPubkey: PublicKey
     
-    /// Base public key to use to derive the address of the allocated account
+    /// Base key used to derive the account address.
     public let basePubkey: PublicKey
     
-    /// Seed to use to derive the address of the allocated account
+    /// Seed used to derive the account address.
     public let seed: String
     
-    /// Amount of space in bytes to allocate
+    /// Amount of space (in bytes) to allocate.
     public let space: UInt64
     
-    /// Public key of the program to assign as the owner of the allocated account
+    /// Program to assign as the owner of the allocated account.
     public let programId: PublicKey
     
+    /// Creates a parameter container for `SystemProgram.allocateWithSeed`.
     public init(accountPubkey: PublicKey, basePubkey: PublicKey, seed: String, space: UInt64, programId: PublicKey) {
       self.accountPubkey = accountPubkey
       self.basePubkey = basePubkey
@@ -288,20 +304,21 @@ extension Solana.SystemProgram {
 }
 
 extension Solana.SystemProgram {
-  /// Assign account with seed system transaction params
+  /// Parameters for the **AssignWithSeed** system instruction.
   public struct AssignWithSeedParams: Sendable, Equatable, Hashable {
-    /// Public key of the account which will be assigned a new owner
+    /// Account which will be assigned a new owner (derived account).
     public let accountPubkey: PublicKey
     
-    /// Base public key to use to derive the address of the assigned account
+    /// Base key used to derive the account address.
     public let basePubkey: PublicKey
     
-    /// Seed to use to derive the address of the assigned account
+    /// Seed used to derive the account address.
     public let seed: String
     
-    /// Public key of the program to assign as the owner
+    /// Program to assign as the owner.
     public let programId: PublicKey
     
+    /// Creates a parameter container for `SystemProgram.assignWithSeed`.
     public init(accountPubkey: PublicKey, basePubkey: PublicKey, seed: String, programId: PublicKey) {
       self.accountPubkey = accountPubkey
       self.basePubkey = basePubkey
@@ -312,26 +329,27 @@ extension Solana.SystemProgram {
 }
 
 extension Solana.SystemProgram {
-  /// Transfer with seed system transaction params
+  /// Parameters for the **TransferWithSeed** system instruction.
   public struct TransferWithSeedParams: Sendable, Equatable, Hashable {
-    /// Account that will transfer lamports
+    /// Funding account (derived) that will transfer lamports.
     public let fromPubkey: PublicKey
     
-    /// Base public key to use to derive the funding account address
+    /// Base key used to derive the funding account address.
     public let basePubkey: PublicKey
     
-    /// Account that will receive transferred lamports
+    /// Recipient of transferred lamports.
     public let toPubkey: PublicKey
     
-    /// Amount of lamports to transfer
+    /// Amount of lamports to transfer.
     public let lamports: UInt64
     
-    /// Seed to use to derive the funding account address
+    /// Seed used to derive the funding account address.
     public let seed: String
     
-    /// Program id to use to derive the funding account address
+    /// Program id used to derive the funding account address.
     public let programId: PublicKey
     
+    /// Creates a parameter container for `SystemProgram.transferWithSeed`.
     public init(fromPubkey: PublicKey, basePubkey: PublicKey, toPubkey: PublicKey, lamports: UInt64, seed: String, programId: PublicKey) {
       self.fromPubkey = fromPubkey
       self.basePubkey = basePubkey
@@ -344,17 +362,18 @@ extension Solana.SystemProgram {
 }
 
 extension Solana.SystemProgram {
-  /// Decoded transfer system transaction instruction
+  /// Decoded payload for a **Transfer** instruction.
   public struct DecodedTransferInstruction: Sendable, Equatable, Hashable {
-    /// Account that will transfer lamports
+    /// Account that transferred lamports.
     public let fromPubkey: PublicKey
     
-    /// Account that will receive transferred lamports
+    /// Account that received lamports.
     public let toPubkey: PublicKey
     
-    /// Amount of lamports to transfer
+    /// Amount of lamports transferred.
     public let lamports: UInt64
     
+    /// Creates a decoded model for `SystemProgram.transfer`.
     public init(fromPubkey: PublicKey, toPubkey: PublicKey, lamports: UInt64) {
       self.fromPubkey = fromPubkey
       self.toPubkey = toPubkey
@@ -364,26 +383,27 @@ extension Solana.SystemProgram {
 }
 
 extension Solana.SystemProgram {
-  /// Decoded transferWithSeed system transaction instruction
+  /// Decoded payload for a **TransferWithSeed** instruction.
   public struct DecodedTransferWithSeedInstruction: Sendable, Equatable, Hashable {
-    /// Account that will transfer lamports
+    /// Funding account (derived) that transferred lamports.
     public let fromPubkey: PublicKey
     
-    /// Base public key to use to derive the funding account address
+    /// Base key used to derive the funding account address.
     public let basePubkey: PublicKey
     
-    /// Account that will receive transferred lamports
+    /// Recipient account.
     public let toPubkey: PublicKey
     
-    /// Amount of lamports to transfer
+    /// Amount of lamports transferred.
     public let lamports: UInt64
     
-    /// Seed to use to derive the funding account address
+    /// Seed used to derive the funding account address.
     public let seed: String
     
-    /// Program id to use to derive the funding account address
+    /// Program id used to derive the funding account address.
     public let programId: PublicKey
     
+    /// Creates a decoded model for `SystemProgram.transferWithSeed`.
     public init(fromPubkey: PublicKey, basePubkey: PublicKey, toPubkey: PublicKey, lamports: UInt64, seed: String, programId: PublicKey) {
       self.fromPubkey = fromPubkey
       self.basePubkey = basePubkey

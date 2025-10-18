@@ -10,9 +10,9 @@ import Testing
 import mew_wallet_ios_kit
 import mew_wallet_ios_tweetnacl
 
-@Suite("SOLANA WIP")
+@Suite("Derivation test")
 fileprivate struct SolanaWIPTests {
-  @Test("SOLANA WIP")
+  @Test("Test derivation correctness")
   func hd() async throws {
     let mnem = "hat correct find conduct original nasty narrow slush wool smile spread pride spirit profit mention smart squeeze roast inhale claim frog eye leave step"
     
