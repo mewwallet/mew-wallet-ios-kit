@@ -65,7 +65,6 @@ extension Solana.MessageCompiledInstruction: Codable {
     try container.encode(programIdIndex)
     
     // accountKeyIndexes: shortvec(len) + raw bytes
-#warning("hm?")
     try container.encode(accountKeyIndexes.count)
     try container.encode(Data(accountKeyIndexes))
     
