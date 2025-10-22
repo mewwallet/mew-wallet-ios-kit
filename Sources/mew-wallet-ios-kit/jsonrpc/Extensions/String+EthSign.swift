@@ -16,13 +16,13 @@ public extension String {
     return personalMessage.hashPersonalMessage()
   }
   
-  func signPersonalMessage(key: PrivateKey, leadingV: Bool) -> Data? {
-    return self.hashPersonalMessage()?.unsafeSign(key: key.data(), leadingV: leadingV)
+  func signPersonalMessage(key: PrivateKey, leadingV: Bool) throws -> Data? {
+    return try self.hashPersonalMessage()?.unsafeSign(key: key.data(), leadingV: leadingV)
   }
   
   @available(swift, obsoleted: 1.0, renamed: "signPersonalMessage(key:leadingV:)")
   func hashPersonalMessageAndSign(key: PrivateKey, leadingV: Bool) -> Data? {
-    return self.hashPersonalMessage()?.unsafeSign(key: key.data(), leadingV: leadingV)
+    return try? self.hashPersonalMessage()?.unsafeSign(key: key.data(), leadingV: leadingV)
   }
   
   @available(swift, obsoleted: 1.0, renamed: "signPersonalMessage(key:leadingV:)")
@@ -30,6 +30,6 @@ public extension String {
     guard let personalMessage = self.data(using: .utf8) else {
       return nil
     }
-    return personalMessage.unsafeSign(key: key.data(), leadingV: leadingV)
+    return try? personalMessage.unsafeSign(key: key.data(), leadingV: leadingV)
   }
 }

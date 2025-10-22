@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import mew_wallet_ios_kit_utils
 #if canImport(Combine)
 import Combine
 #endif
@@ -54,7 +55,7 @@ extension Bitcoin {
     /// - Returns: A `Data` object containing the binary representation.
     /// - Throws: An error if the value cannot be encoded.
     public func encode<T>(_ value: T) throws -> Data where T : Encodable {
-      let storage = Bitcoin._Encoding.Storage()
+      let storage = BinaryStorage()
       let encoder = Bitcoin._Encoding.Encoder(codingPath: [], userInfo: self.userInfo, storage: storage, sizeEncodingFormat: self.sizeEncodingFormat)
       try value.encode(to: encoder)
       return storage.encodedData()

@@ -11,7 +11,11 @@ import BigInt
 import CryptoSwift
 
 extension String {
-  func decodeBase58(alphabet: String) -> Data? {
+  public enum Base58Error: Error {
+    case invalidCharacter
+  }
+  
+  package func decodeBase58(alphabet: String) throws -> Data {
     let alphabetBytes = alphabet.bytes
     
     var result = BigInt(0)
@@ -24,7 +28,7 @@ extension String {
     
     for char in byteStringReversed {
       guard let index = alphabetBytes.firstIndex(of: char) else {
-        return nil
+        throw Base58Error.invalidCharacter
       }
       result += j * BigInt(index)
       j *= radix
@@ -37,5 +41,10 @@ extension String {
       prefixData += [0x00]
     }
     return prefixData + Data(bytes)
+  }
+  
+  package func decodeBase58(_ network: Network) throws -> Data {
+    precondition(network.alphabet != nil)
+    return try decodeBase58(alphabet: network.alphabet!)
   }
 }

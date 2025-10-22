@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import mew_wallet_ios_kit_utils
 
 extension Bitcoin._Encoding {
   /// A custom unkeyed encoding container for serializing sequences in Bitcoin-specific binary format.
@@ -60,7 +61,7 @@ extension Bitcoin._Encoding {
       // Special case: write VarInt length for script_witnesses array
       if self.key?.stringValue == "script_witnesses" {
         if let array = value as? [Any] {
-          let size = _Reader.VarInt(rawValue: array.count)
+          let size = VarInt(rawValue: array.count)
           size.write(to: self.encoder.storage)
         }
       }
@@ -80,7 +81,7 @@ extension Bitcoin._Encoding {
       // Encode raw Data
       switch self.encoder.sizeEncodingFormat {
       case .varInt:
-        let size = _Reader.VarInt(rawValue: data.count)
+        let size = VarInt(rawValue: data.count)
         size.write(to: self.encoder.storage)
       case .disabled:
         break

@@ -62,9 +62,14 @@ fileprivate struct TestVector: @unchecked Sendable {
     self.parameters = parameters
   }
   
-  fileprivate static let valid: [TestVector] = [
+  fileprivate static let validRaw: [TestVector] = [
     .init(raw: "0xcccc00000000000000000000000000000000cccc", chainID: nil, targetAddress: Address(raw: "0xcccc00000000000000000000000000000000cccc"), recipientAddress: nil, value: nil, tokenValue: nil, gasLimit: nil, data: nil, functionName: nil, function: nil, parameters: []),
+  ]
+  fileprivate static let validBTC: [TestVector] = [
     .init(raw: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", chainID: nil, targetAddress: Address(raw: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"), recipientAddress: nil, value: nil, tokenValue: nil, gasLimit: nil, data: nil, functionName: nil, function: nil, parameters: [])
+  ]
+  fileprivate static let validSOL: [TestVector] = [
+    .init(raw: "2ipZdgc1uLgFWd8UznBA9V2urrgHf41FoqdW8v3hCCeb", chainID: nil, targetAddress: Address(raw: "2ipZdgc1uLgFWd8UznBA9V2urrgHf41FoqdW8v3hCCeb"), recipientAddress: nil, value: nil, tokenValue: nil, gasLimit: nil, data: nil, functionName: nil, function: nil, parameters: []),
   ]
 
   fileprivate static let invalid: [TestVector] = [
@@ -75,12 +80,43 @@ fileprivate struct TestVector: @unchecked Sendable {
   ]
 }
 
-
-@Suite("RawQRCode Tests")
+@Suite("QRCode Tests")
 fileprivate struct RawQRCodeTests {
-  @Test("Test valid cases", arguments: TestVector.valid)
-  func valid(vector: TestVector) async throws {
+  @Test("Test raw valid cases", arguments: TestVector.validRaw)
+  func validRaw(vector: TestVector) async throws {
     let code = try #require(RawQRCode(vector.raw))
+    
+    #expect(code.chainID == vector.chainID)
+    #expect(code.targetAddress == vector.targetAddress)
+    #expect(code.recipientAddress == vector.recipientAddress)
+    #expect(code.value == vector.value)
+    #expect(code.tokenValue == vector.tokenValue)
+    #expect(code.gasLimit == vector.gasLimit)
+    #expect(code.data == vector.data)
+    #expect(code.functionName == vector.functionName)
+    #expect(code.function == vector.function)
+    #expect(code.parameters == vector.parameters)
+  }
+  
+  @Test("Test BTC valid cases", arguments: TestVector.validBTC)
+  func validBTC(vector: TestVector) async throws {
+    let code = try #require(BitcoinQRCode(vector.raw))
+    
+    #expect(code.chainID == vector.chainID)
+    #expect(code.targetAddress == vector.targetAddress)
+    #expect(code.recipientAddress == vector.recipientAddress)
+    #expect(code.value == vector.value)
+    #expect(code.tokenValue == vector.tokenValue)
+    #expect(code.gasLimit == vector.gasLimit)
+    #expect(code.data == vector.data)
+    #expect(code.functionName == vector.functionName)
+    #expect(code.function == vector.function)
+    #expect(code.parameters == vector.parameters)
+  }
+  
+  @Test("Test SOL valid cases", arguments: TestVector.validSOL)
+  func validSOL(vector: TestVector) async throws {
+    let code = try #require(SolanaQRCode(vector.raw))
     
     #expect(code.chainID == vector.chainID)
     #expect(code.targetAddress == vector.targetAddress)

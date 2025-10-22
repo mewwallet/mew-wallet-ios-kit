@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import mew_wallet_ios_kit_utils
 
 extension Bitcoin._Encoding {
   /// A custom keyed encoding container used for serializing Bitcoin-related types into raw binary format.
@@ -50,7 +51,7 @@ extension Bitcoin._Encoding {
     mutating func encode<T>(_ value: T, forKey key: Key) throws where T : Encodable {
       // If the value is raw `Data`, encode directly.
       guard let data = value as? Data else {
-        let storage = Bitcoin._Encoding.Storage()
+        let storage = BinaryStorage()
         let encoder: Bitcoin._Encoding.Encoder
         
         // Disable size encoding for scripts like `asm`.
@@ -78,13 +79,13 @@ extension Bitcoin._Encoding {
           break // No prefix
         case "vin", "inputs", "vout", "outputs", "script_witnesses":
           if let array = value as? [Any] {
-            let size = _Reader.VarInt(rawValue: array.count)
+            let size = VarInt(rawValue: array.count)
             size.write(to: self.encoder.storage)
           }
         default:
           switch self.encoder.sizeEncodingFormat {
           case .varInt:
-            let size = _Reader.VarInt(rawValue: storage.length)
+            let size = VarInt(rawValue: storage.length)
             size.write(to: self.encoder.storage)
           case .disabled:
             break
@@ -101,7 +102,7 @@ extension Bitcoin._Encoding {
       default:
         switch self.encoder.sizeEncodingFormat {
         case .varInt:
-          let size = _Reader.VarInt(rawValue: data.count)
+          let size = VarInt(rawValue: data.count)
           size.write(to: self.encoder.storage)
         case .disabled:
           break

@@ -8,6 +8,7 @@
 
 import Foundation
 import mew_wallet_ios_secp256k1
+import mew_wallet_ios_tweetnacl
 
 private struct PublicKeyConstants {
   static let compressedKeySize = 33
@@ -36,7 +37,7 @@ private struct PublicKeyConfig {
 @available(*, deprecated, renamed: "PublicKey", message: "Please use PublicKey instead")
 public typealias PublicKeyEth1 = PublicKey
 
-public struct PublicKey: IPublicKey {
+public struct PublicKey: IPublicKey, Sendable {
   private let raw: Data
   private let chainCode: Data
   private let depth: UInt8
@@ -47,17 +48,23 @@ public struct PublicKey: IPublicKey {
   
   init(privateKey: Data, compressed: Bool = false, chainCode: Data, depth: UInt8, fingerprint: Data, index: UInt32, network: Network) throws {
     self.config = PublicKeyConfig(compressed: compressed)
-    guard let context = secp256k1_context_create(UInt32(SECP256K1_CONTEXT_SIGN)) else {
-      throw PublicKeyError.internalError
-    }
-    defer { secp256k1_context_destroy(context) }
     
-    var pKey = try secp256k1_pubkey(privateKey: privateKey, context: context)
-    
-    guard let rawData = pKey.data(context: context, flags: self.config.keyFlags) else {
-      throw PublicKeyError.internalError
+    switch network {
+    case .solana:
+      self.raw = try TweetNacl.signKeyPair(seed: privateKey).publicKey
+    default:
+      guard let context = secp256k1_context_create(UInt32(SECP256K1_CONTEXT_SIGN)) else {
+        throw PublicKeyError.internalError
+      }
+      defer { secp256k1_context_destroy(context) }
+      
+      var pKey = try secp256k1_pubkey(privateKey: privateKey, context: context)
+      
+      guard let rawData = pKey.data(context: context, flags: self.config.keyFlags) else {
+        throw PublicKeyError.internalError
+      }
+      self.raw = rawData
     }
-    self.raw = rawData
     self.chainCode = chainCode
     self.depth = depth
     self.fingerprint = fingerprint
@@ -65,8 +72,8 @@ public struct PublicKey: IPublicKey {
     self.network = network
   }
   
-  init(publicKey: Data, compressed: Bool? = false, index: UInt32, network: Network) throws {
-    guard let compressed = compressed else {
+  package init(publicKey: Data, compressed: Bool? = false, index: UInt32, network: Network) throws {
+    guard let compressed else {
       throw PublicKeyError.invalidConfiguration
     }
     self.config = PublicKeyConfig(compressed: compressed)
@@ -76,6 +83,23 @@ public struct PublicKey: IPublicKey {
     self.fingerprint = Data()
     self.index = index
     self.network = network
+  }
+  
+  public init(base58: String, network: Network) throws {
+    guard network == .solana, let alphabet = network.alphabet else {
+      throw PublicKeyError.invalidNetwork
+    }
+    let raw = try base58.decodeBase58(alphabet: alphabet)
+    try self.init(publicKey: raw, compressed: true, index: 0, network: network)
+  }
+  
+  package init(hex: String, network: Network) throws {
+    guard network == .solana else {
+      throw PublicKeyError.invalidNetwork
+    }
+    var raw = Data(hex: hex)
+    raw.setLength(32, appendFromLeft: true, negative: false)
+    try self.init(publicKey: raw, compressed: true, index: 0, network: network)
   }
 }
 
@@ -96,15 +120,18 @@ extension PublicKey: IKey {
     extendedKey += self.raw
     let checksum = extendedKey.sha256().sha256().prefix(4)
     extendedKey += checksum
-    return extendedKey.encodeBase58(alphabet: alphabet)
+    return try? extendedKey.encodeBase58(alphabet: alphabet)
   }
   
   public func data() -> Data {
     return self.raw
   }
-  
   public func address() -> Address? {
     switch self.network {
+    case .solana:
+      guard let alphabet = self.network.alphabet else { return nil }
+      guard let stringAddress: String = try? self.raw.encodeBase58(alphabet: alphabet) else { return nil }
+      return Address(raw: stringAddress)
     case .bitcoin(let format) where format == .segwit || format == .segwitTestnet:
       guard self.raw.count == PublicKeyConstants.compressedKeySize else { return nil }
       let publicKey = self.raw
@@ -127,7 +154,7 @@ extension PublicKey: IKey {
       let payload = publicKey.sha256().ripemd160()
       let checksum = (prefix + payload).sha256().sha256().prefix(4)
       let data = prefix + payload + checksum
-      guard let stringAddress: String = data.encodeBase58(alphabet: alphabet) else {
+      guard let stringAddress: String = try? data.encodeBase58(alphabet: alphabet) else {
         return nil
       }
       return Address(raw: stringAddress)
@@ -143,7 +170,7 @@ extension PublicKey: IKey {
       let payload = publicKey.ripemd160()
       let checksum = (prefix + payload).sha256().sha256().prefix(4)
       let data = prefix + payload + checksum
-      guard let stringAddress: String = data.encodeBase58(alphabet: alphabet) else {
+      guard let stringAddress: String = try? data.encodeBase58(alphabet: alphabet) else {
         return nil
       }
       return Address(raw: stringAddress)
@@ -158,6 +185,58 @@ extension PublicKey: IKey {
         return nil
       }
       return Address(address: eip55, prefix: self.network.addressPrefix)
+    }
+  }
+}
+
+// MARK: - PublicKey + Equatable
+  
+extension PublicKey: Equatable {
+  public static func == (lhs: PublicKey, rhs: PublicKey) -> Bool {
+    return lhs.raw == rhs.raw && lhs.network == rhs.network
+  }
+}
+
+// MARK: - PublicKey + Hashable
+
+extension PublicKey: Hashable {
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(self.raw)
+    hasher.combine(self.network)
+  }
+}
+
+// MARK: - PublicKey + Codable
+
+extension PublicKey: Codable {
+  public init(from decoder: any Decoder) throws {
+    let container = try decoder.singleValueContainer()
+    let raw = try container.decode(Data.self)
+    
+    // TODO: Support other networks
+    try self.init(publicKey: raw, index: 0, network: .solana)
+  }
+  
+  public func encode(to encoder: any Encoder) throws {
+    switch self.network {
+    case .solana:
+      var container = encoder.singleValueContainer()
+      try container.encode(self.raw)
+    default:
+      break
+    }
+  }
+}
+
+// MARK: - PublicKey + CustomDebugStringConvertible
+
+extension PublicKey: CustomDebugStringConvertible {
+  public var debugDescription: String {
+    switch self.network {
+    case .solana:
+      return self.address()?.address ?? self.raw.toHexString()
+    default:
+      return self.raw.toHexString()
     }
   }
 }

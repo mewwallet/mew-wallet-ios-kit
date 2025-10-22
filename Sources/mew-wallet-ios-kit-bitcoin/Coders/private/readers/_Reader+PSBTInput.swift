@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import mew_wallet_ios_kit_utils
 
 extension _Reader {
   /// Parser and raw representation of a single **PSBT input map section**, as per BIP-174.
@@ -81,7 +82,7 @@ extension _Reader {
       var cursor = data.startIndex
       
       while cursor != data.endIndex {
-        let keylen: _Reader.VarInt = try data.read(&cursor)
+        let keylen: VarInt = try data.read(&cursor)
         let key = try data.read(&cursor, offsetBy: keylen.value)
         let keytype = MapKey(map: .input_map, data: key)
         
@@ -89,48 +90,48 @@ extension _Reader {
         case .inputMap(.known(.PSBT_IN_NON_WITNESS_UTXO, let keydata)):
           guard keydata?.isEmpty ?? true else { throw DataReaderError.badValue }
           guard self.non_witness_utxo == nil else { throw DataReaderError.duplicateKey }
-          let valuelen: _Reader.VarInt = try data.read(&cursor)
+          let valuelen: VarInt = try data.read(&cursor)
           self.non_witness_utxo = try data.read(&cursor, offsetBy: valuelen.value)
           
         case .inputMap(.known(.PSBT_IN_WITNESS_UTXO, let keydata)):
           guard keydata?.isEmpty ?? true else { throw DataReaderError.badValue }
           guard self.witness_utxo == nil else { throw DataReaderError.duplicateKey }
-          let valuelen: _Reader.VarInt = try data.read(&cursor)
+          let valuelen: VarInt = try data.read(&cursor)
           self.witness_utxo = try data.read(&cursor, offsetBy: valuelen.value)
           
         case .inputMap(.known(.PSBT_IN_WITNESS_SCRIPT, let keydata)):
           guard keydata?.isEmpty ?? true else { throw DataReaderError.badValue }
           guard self.witness_script == nil else { throw DataReaderError.duplicateKey }
-          let valuelen: _Reader.VarInt = try data.read(&cursor)
+          let valuelen: VarInt = try data.read(&cursor)
           self.witness_script = try data.read(&cursor, offsetBy: valuelen.value)
           
         case .inputMap(.known(.PSBT_IN_REDEEM_SCRIPT, let keydata)):
           guard keydata?.isEmpty ?? true else { throw DataReaderError.badValue }
           guard self.redeem_script == nil else { throw DataReaderError.duplicateKey }
-          let valuelen: _Reader.VarInt = try data.read(&cursor)
+          let valuelen: VarInt = try data.read(&cursor)
           self.redeem_script = try data.read(&cursor, offsetBy: valuelen.value)
           
         case .inputMap(.known(.PSBT_IN_SIGHASH_TYPE, let keydata)):
           guard keydata?.isEmpty ?? true else { throw DataReaderError.badValue }
           guard self.sighash == nil else { throw DataReaderError.duplicateKey }
-          let valuelen: _Reader.VarInt = try data.read(&cursor)
+          let valuelen: VarInt = try data.read(&cursor)
           self.sighash = try data.read(&cursor, offsetBy: valuelen.value)
           
         case .inputMap(.known(.PSBT_IN_FINAL_SCRIPTSIG, let keydata)):
           guard keydata?.isEmpty ?? true else { throw DataReaderError.badValue }
           guard self.final_scriptSig == nil else { throw DataReaderError.duplicateKey }
-          let valuelen: _Reader.VarInt = try data.read(&cursor)
+          let valuelen: VarInt = try data.read(&cursor)
           self.final_scriptSig = try data.read(&cursor, offsetBy: valuelen.value)
           
         case .inputMap(.known(.PSBT_IN_FINAL_SCRIPTWITNESS, let keydata)):
           guard keydata?.isEmpty ?? true else { throw DataReaderError.badValue }
           guard self.final_scriptWitness == nil else { throw DataReaderError.duplicateKey }
-          let valuelen: _Reader.VarInt = try data.read(&cursor)
+          let valuelen: VarInt = try data.read(&cursor)
           self.final_scriptWitness = try data.read(&cursor, offsetBy: valuelen.value)
           
         case .inputMap(.known), .inputMap(.unknown):
           // Skip unhandled known or unknown keys
-          let valuelen: _Reader.VarInt = try data.read(&cursor)
+          let valuelen: VarInt = try data.read(&cursor)
           try data.seek(&cursor, offsetBy: valuelen.value)
           
         default:

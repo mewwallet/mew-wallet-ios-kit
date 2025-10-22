@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import mew_wallet_ios_kit_utils
 
 extension _Reader {
   /// Low-level parser for a full PSBT (Partially Signed Bitcoin Transaction) binary blob.
@@ -80,7 +81,7 @@ extension _Reader {
       
       while map != nil {
         let mapStart = cursor
-        let keylen: _Reader.VarInt = try data.read(&cursor)
+        let keylen: VarInt = try data.read(&cursor)
         let key = try data.read(&cursor, offsetBy: keylen.value)
         let keytype = MapKey(map: map!, data: key)
         defer {
@@ -92,7 +93,7 @@ extension _Reader {
           
         case .globalMap(.known(.PSBT_GLOBAL_UNSIGNED_TX, let keydata)):
           guard keydata?.isEmpty ?? true else { throw DataReaderError.badValue }
-          let valuelen: _Reader.VarInt = try data.read(&cursor)
+          let valuelen: VarInt = try data.read(&cursor)
           let value = try data.read(&cursor, offsetBy: valuelen.value)
           self.tx = value
           let tx = try _Reader.BitcoinTx(data: value, context: nil, configuration: configuration)
@@ -103,13 +104,13 @@ extension _Reader {
           
         case .globalMap(.known(.PSBT_GLOBAL_VERSION, let keydata)):
           guard keydata?.isEmpty ?? true else { throw DataReaderError.badValue }
-          let valuelen: _Reader.VarInt = try data.read(&cursor)
+          let valuelen: VarInt = try data.read(&cursor)
           let value = try data.read(&cursor, offsetBy: valuelen.value)
           self.psbt_version = value
           
         case .globalMap(.known(.PSBT_GLOBAL_XPUB, let keydata)):
           guard keydata?.isEmpty ?? true else { throw DataReaderError.badValue }
-          let valuelen: _Reader.VarInt = try data.read(&cursor)
+          let valuelen: VarInt = try data.read(&cursor)
           let value = try data.read(&cursor, offsetBy: valuelen.value)
           var pubs = self.global_xpubs ?? []
           pubs.append(value)
@@ -126,7 +127,7 @@ extension _Reader {
           if ioStartCursor == nil {
             ioStartCursor = mapStart
           }
-          let valuelen: _Reader.VarInt = try data.read(&cursor)
+          let valuelen: VarInt = try data.read(&cursor)
           try data.seek(&cursor, offsetBy: valuelen.value)
           ioEndCursor = cursor
           
@@ -152,7 +153,7 @@ extension _Reader {
           if ioStartCursor == nil {
             ioStartCursor = mapStart
           }
-          let valuelen: _Reader.VarInt = try data.read(&cursor)
+          let valuelen: VarInt = try data.read(&cursor)
           try data.seek(&cursor, offsetBy: valuelen.value)
           ioEndCursor = cursor
           

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import mew_wallet_ios_kit_utils
 
 extension Bitcoin._Encoding {
   /// A custom single value encoding container used for serializing raw values
@@ -46,7 +47,7 @@ extension Bitcoin._Encoding {
     mutating func encode<T>(_ value: T) throws where T : Encodable {
       guard let data = value as? Data else {
         // Encode nested structure
-        let storage = Bitcoin._Encoding.Storage()
+        let storage = BinaryStorage()
         let encoder = Bitcoin._Encoding.Encoder(
           codingPath: self.codingPath,
           userInfo: self.encoder.userInfo,
@@ -54,7 +55,7 @@ extension Bitcoin._Encoding {
           sizeEncodingFormat: self.encoder.sizeEncodingFormat
         )
         try value.encode(to: encoder)
-        let size = _Reader.VarInt(rawValue: storage.length)
+        let size = VarInt(rawValue: storage.length)
         size.write(to: self.encoder.storage)
         self.encoder.storage.append(storage: storage)
         return
@@ -63,7 +64,7 @@ extension Bitcoin._Encoding {
       // Directly encode raw data
       switch self.encoder.sizeEncodingFormat {
       case .varInt:
-        let size = _Reader.VarInt(rawValue: data.count)
+        let size = VarInt(rawValue: data.count)
         size.write(to: self.encoder.storage)
       case .disabled:
         break

@@ -33,12 +33,16 @@ public enum EquatableEIPQRCode {
   case eip681(EIP681Code)
   case eip67(EIP67Code)
   case raw(RawQRCode)
+  case bitcoin(BitcoinQRCode)
+  case solana(SolanaQRCode)
   
   public var qr: EIPQRCode {
     switch self {
-    case .eip681(let eip681Code):   return eip681Code
-    case .eip67(let eip67Code):     return eip67Code
-    case .raw(let rawQRCode):       return rawQRCode
+    case .eip681(let eip681Code):     return eip681Code
+    case .eip67(let eip67Code):       return eip67Code
+    case .raw(let rawQRCode):         return rawQRCode
+    case .bitcoin(let bitcoinQRCode): return bitcoinQRCode
+    case .solana(let solanaQRCode):   return solanaQRCode
     }
   }
   
@@ -51,6 +55,12 @@ public enum EquatableEIPQRCode {
       return
     } else if let raw = RawQRCode(string) {
       self = .raw(raw)
+      return
+    } else if let bitcoin = BitcoinQRCode(string) {
+      self = .bitcoin(bitcoin)
+      return
+    } else if let solana = SolanaQRCode(string) {
+      self = .solana(solana)
       return
     }
     return nil
@@ -65,6 +75,10 @@ extension EquatableEIPQRCode: Equatable {
     case (.eip67(let lhs), .eip67(let rhs)):
       return lhs == rhs
     case (.raw(let lhs), .raw(let rhs)):
+      return lhs == rhs
+    case (.bitcoin(let lhs), .bitcoin(let rhs)):
+      return lhs == rhs
+    case (.solana(let lhs), .solana(let rhs)):
       return lhs == rhs
     default:
       return false

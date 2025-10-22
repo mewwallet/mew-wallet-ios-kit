@@ -12,7 +12,6 @@ public protocol IKey {
   var network: Network { get }
   func string(compressedPublicKey: Bool) -> String?
   func extended() -> String?
-  func data() -> Data
   func address() -> Address?
 }
 

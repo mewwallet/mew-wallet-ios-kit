@@ -49,14 +49,14 @@ class Base58Tests: QuickSpec {
     describe("Base58 tests") {
       it("Should encode correctly") {
         for vector in self.testVectors {
-          let encoded: String? = vector.decoded.encodeBase58(alphabet: self.alphabet)
+          let encoded: String? = try? vector.decoded.encodeBase58(alphabet: self.alphabet)
           expect(encoded).to(equal(vector.encoded))
         }
       }
       
       it("Should decode correctly") {
         for vector in self.testVectors {
-          let decoded = vector.encoded.decodeBase58(alphabet: self.alphabet)
+          let decoded = try? vector.encoded.decodeBase58(alphabet: self.alphabet)
           expect(decoded).to(equal(vector.decoded))
         }
       }
