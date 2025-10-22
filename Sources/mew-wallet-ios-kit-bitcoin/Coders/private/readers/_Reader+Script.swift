@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import mew_wallet_ios_kit_utils
 
 extension _Reader {
   /// A Bitcoin script parser conforming to `DataReader` and `KeypathProvider`.

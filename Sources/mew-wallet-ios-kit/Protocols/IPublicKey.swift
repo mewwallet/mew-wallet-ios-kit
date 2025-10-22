@@ -9,5 +9,6 @@
 import Foundation
 
 protocol IPublicKey: IKey {
+  func data() -> Data
   init(publicKey: Data, compressed: Bool?, index: UInt32, network: Network) throws
 }

@@ -7,7 +7,7 @@ let package = Package(
   name: "mew-wallet-ios-kit",
   platforms: [
     .iOS(.v13),
-    .macOS(.v10_13)
+    .macOS(.v10_15)
   ],
   products: [
     .library(
@@ -21,6 +21,14 @@ let package = Package(
     .library(
       name: "mew-wallet-ios-kit-bitcoin-sign",
       targets: ["mew-wallet-ios-kit-bitcoin-sign"]
+    ),
+    .library(
+      name: "mew-wallet-ios-kit-solana",
+      targets: ["mew-wallet-ios-kit-solana"]
+    ),
+    .library(
+      name: "mew-wallet-ios-kit-solana-sign",
+      targets: ["mew-wallet-ios-kit-solana-sign"]
     )
   ],
   dependencies: [
@@ -28,7 +36,7 @@ let package = Package(
     .package(url: "https://github.com/attaswift/BigInt.git", from: "5.5.0"),
     .package(url: "https://github.com/mewwallet/mew-wallet-ios-secp256k1.git", exact: "1.0.4"),
     .package(url: "https://github.com/mewwallet/bls-eth-swift.git", exact: "1.0.2"),
-    .package(url: "https://github.com/mewwallet/mew-wallet-ios-tweetnacl.git", .upToNextMajor(from: "1.0.2")),
+    .package(url: "https://github.com/mewwallet/mew-wallet-ios-tweetnacl.git", .upToNextMajor(from: "1.0.4")),
     .package(url: "https://github.com/Quick/Quick.git", .upToNextMajor(from: "3.0.0")),
     .package(url: "https://github.com/Quick/Nimble.git", .upToNextMajor(from: "9.0.0"))
   ],
@@ -50,6 +58,7 @@ let package = Package(
     .target(
       name: "mew-wallet-ios-kit-bitcoin",
       dependencies: [
+        "mew-wallet-ios-kit-utils",
         "CryptoSwift"
       ],
       path: "Sources/mew-wallet-ios-kit-bitcoin"
@@ -63,6 +72,35 @@ let package = Package(
         "mew-wallet-ios-kit-bitcoin",
       ],
       path: "Sources/mew-wallet-ios-kit-bitcoin-sign"
+    ),
+    
+    // Solana target
+    .target(
+      name: "mew-wallet-ios-kit-solana",
+      dependencies: [
+        "CryptoSwift",
+        "mew-wallet-ios-kit-utils",
+        "mew-wallet-ios-kit"
+      ],
+      path: "Sources/mew-wallet-ios-kit-solana"
+    ),
+    
+    // Solana signing
+    .target(
+      name: "mew-wallet-ios-kit-solana-sign",
+      dependencies: [
+        "mew-wallet-ios-kit-solana",
+      ],
+      path: "Sources/mew-wallet-ios-kit-solana-sign"
+    ),
+    
+    // Uitls
+    .target(
+      name: "mew-wallet-ios-kit-utils",
+      dependencies: [
+        "BigInt",
+      ],
+      path: "Sources/mew-wallet-ios-kit-utils"
     )
   ],
   swiftLanguageModes: [.v4, .v4_2, .v5, .v6]
@@ -90,7 +128,7 @@ package.targets.append(
     dependencies: [
       "mew-wallet-ios-kit-bitcoin-sign"
     ],
-    path: "Tests/mew-wallet-ios-kit-bitcoin-sign-tests"
+    path: "Tests/mew-wallet-ios-kit-bitcoin-sign"
   )
 )
 
@@ -103,5 +141,38 @@ package.targets.append(
       "CryptoSwift",
     ],
     path: "Tests/mew-wallet-ios-kit-bitcoin"
+  )
+)
+
+// MARK: mew-wallet-ios-solana-tests
+package.targets.append(
+  .testTarget(
+    name: "mew-wallet-ios-kit-solana-tests",
+    dependencies: [
+      "mew-wallet-ios-kit-solana"
+    ],
+    path: "Tests/mew-wallet-ios-kit-solana"
+  )
+)
+
+// MARK: mew-wallet-ios-solana-sign-tests
+package.targets.append(
+  .testTarget(
+    name: "mew-wallet-ios-kit-solana-sign-tests",
+    dependencies: [
+      "mew-wallet-ios-kit-solana-sign"
+    ],
+    path: "Tests/mew-wallet-ios-kit-solana-sign"
+  )
+)
+
+// MARK: mew-wallet-ios-kit-utils-tests
+package.targets.append(
+  .testTarget(
+    name: "mew-wallet-ios-kit-utils-tests",
+    dependencies: [
+      "mew-wallet-ios-kit-utils"
+    ],
+    path: "Tests/mew-wallet-ios-kit-utils"
   )
 )

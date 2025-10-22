@@ -11,7 +11,7 @@ import Foundation
 ///
 /// These errors are typically thrown when parsing malformed, incomplete,
 /// or otherwise invalid Bitcoin or PSBT structures.
-internal enum DataReaderError: Error, Sendable, Equatable {
+package enum DataReaderError: Error, Sendable, Equatable {
   /// The size of a field or segment was invalid (too short, too long, or mismatched).
   case badSize
   

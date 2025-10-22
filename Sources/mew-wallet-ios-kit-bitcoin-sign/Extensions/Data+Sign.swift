@@ -58,7 +58,13 @@ extension Data {
     var counter: UInt32 = 2
     // Hash to sign
     var message = self.byteArray
-    var privateKey = key.data().byteArray
+    var privateKey: [UInt8]
+    do {
+      privateKey = try key.data().byteArray
+    } catch {
+      throw .signingError
+    }
+    
     var signature = secp256k1_ecdsa_signature()
     var extraEntropy = [UInt8](repeating: 0, count: SignatureConstants.extraEntropyLength)
     

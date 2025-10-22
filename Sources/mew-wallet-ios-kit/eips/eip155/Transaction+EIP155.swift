@@ -49,7 +49,7 @@ extension Transaction {
   }
   
   private func eip155sign(privateKey: PrivateKey, extraEntropy: Bool = false, context: OpaquePointer/*secp256k1_context*/) throws -> (serialized: Data?, raw: Data?) {
-    let privateKeyData = privateKey.data()
+    let privateKeyData = try privateKey.data()
     guard privateKeyData.secp256k1Verify(context: context) else { throw TransactionSignError.invalidPrivateKey }
     guard self.chainID != nil else { throw TransactionSignError.invalidChainId }
     self.signature = nil

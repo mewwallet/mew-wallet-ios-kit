@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import mew_wallet_ios_kit_utils
 
 extension Bitcoin._Encoding {
   /// A custom implementation of `Swift.Encoder` used to encode Bitcoin-specific structures
@@ -26,7 +27,7 @@ extension Bitcoin._Encoding {
     let userInfo: [CodingUserInfoKey : Any]
     
     /// The backing storage where encoded bytes are collected.
-    let storage: Bitcoin._Encoding.Storage
+    let storage: BinaryStorage
     
     /// Encoding strategy for collection sizes (e.g., varInt or none).
     let sizeEncodingFormat: Bitcoin.Encoder.SizeEncodingFormat
@@ -38,7 +39,7 @@ extension Bitcoin._Encoding {
     ///   - userInfo: Any contextual information for encoding.
     ///   - storage: The output data storage buffer.
     ///   - sizeEncodingFormat: The strategy used for encoding size prefixes (e.g. `.varInt`).
-    init(codingPath: [any CodingKey], userInfo: [CodingUserInfoKey : Any], storage: Bitcoin._Encoding.Storage, sizeEncodingFormat: Bitcoin.Encoder.SizeEncodingFormat) {
+    init(codingPath: [any CodingKey], userInfo: [CodingUserInfoKey : Any], storage: BinaryStorage, sizeEncodingFormat: Bitcoin.Encoder.SizeEncodingFormat) {
       self.codingPath = codingPath
       self.userInfo = userInfo
       self.storage = storage

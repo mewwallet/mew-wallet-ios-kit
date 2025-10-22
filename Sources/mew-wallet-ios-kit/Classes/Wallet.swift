@@ -71,6 +71,14 @@ public final class Wallet<PK: IPrivateKey> {
     let derivedPrivateKey = try self.privateKey.derived(nodes: derivationPath, network: network)
     return Wallet(privateKey: derivedPrivateKey)
   }
+  
+  public func deriveSuffix(_ network: Network? = nil, index: UInt32) throws -> Wallet {
+    let network = network ?? self.privateKey.network
+    let path = network.pathSuffix(index: index)
+    let derivationPath = try path.derivationPath(checkHardenedEdge: self.privateKey.hardenedEdge)
+    let derivedPrivateKey = try self.privateKey.derived(nodes: derivationPath, network: network)
+    return Wallet(privateKey: derivedPrivateKey)
+  }
 }
 
 extension Wallet: Equatable where PK: Equatable {

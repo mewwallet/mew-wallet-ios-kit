@@ -66,7 +66,7 @@ class DataEthSignRoundtripTests: QuickSpec {
           
           for message in self.messages {
             let msgData = message.data(using: .utf8)!
-            let signature = msgData.sign(key: vector.privateKey, leadingV: false)!
+            let signature = try msgData.sign(key: vector.privateKey, leadingV: false)!
             let address = message.hashPersonalMessage()!.recover(with: signature)
             expect(address).to(equal(vector.address))
           }

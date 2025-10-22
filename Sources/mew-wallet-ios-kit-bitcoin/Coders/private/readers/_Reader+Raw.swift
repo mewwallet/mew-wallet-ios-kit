@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import mew_wallet_ios_kit_utils
 
 extension _Reader {
   /// A minimal, non-parsing data container conforming to `DataReader` and `KeypathProvider`.

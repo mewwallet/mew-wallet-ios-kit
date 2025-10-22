@@ -59,7 +59,7 @@ private struct RawQRCodeParser {
           let match = matches.first else { return nil }
     
     guard let target = match.rawQRCodeTarget(in: encoding),
-          let targetAddress = Address(ethereumAddress: target) ?? Address(bitcoinAddress: target) else { return nil }
+          let targetAddress = Address(ethereumAddress: target) else { return nil }
     
     return RawQRCode(targetAddress)
   }

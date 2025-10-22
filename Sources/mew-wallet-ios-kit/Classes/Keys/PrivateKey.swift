@@ -10,14 +10,13 @@ import Foundation
 import CryptoSwift
 import mew_wallet_ios_secp256k1
 import BigInt
-
-private let HMACKeyData: [UInt8] = [0x42, 0x69, 0x74, 0x63, 0x6F, 0x69, 0x6E, 0x20, 0x73, 0x65, 0x65, 0x64] // "Bitcoin seed"
+import mew_wallet_ios_tweetnacl
 
 @available(*, deprecated, renamed: "PrivateKey", message: "Please use PrivateKey instead")
 public typealias PrivateKeyEth1 = PrivateKey
 
 public struct PrivateKey: Equatable, Sendable {
-  private let raw: Data
+  internal let raw: Data
   private let chainCode: Data
   private let depth: UInt8
   private let fingerprint: Data
@@ -42,7 +41,7 @@ extension PrivateKey: IPrivateKey {
   }
   
   public init(seed: Data, network: Network) throws {
-    let output = try Data(HMAC(key: HMACKeyData, variant: .sha2(.sha512)).authenticate(seed.byteArray))
+    let output = try Data(HMAC(key: network.seedKey, variant: .sha2(.sha512)).authenticate(seed.byteArray))
     guard output.count == 64 else {
       throw PrivateKeyError.invalidData
     }
@@ -65,7 +64,7 @@ extension PrivateKey: IPrivateKey {
   
   public init?(wif: String, network: Network) {
     guard let alphabet = network.alphabet else { return nil }
-    guard var data = wif.decodeBase58(alphabet: alphabet) else { return nil }
+    guard var data = try? wif.decodeBase58(alphabet: alphabet) else { return nil }
     
     let checksum = Data(data.suffix(4))
     data = data.dropLast(4)
@@ -77,6 +76,24 @@ extension PrivateKey: IPrivateKey {
     guard Data(verify.prefix(4)) == checksum else { return nil }
     
     self.raw = data.dropFirst(1)
+    self.chainCode = Data()
+    self.depth = 0
+    self.fingerprint = Data([0x00, 0x00, 0x00, 0x00])
+    self.index = 0
+    self.network = network
+  }
+  
+  public init?(base58: String, network: Network) {
+    guard let alphabet = network.alphabet else { return nil }
+    guard var data = try? base58.decodeBase58(alphabet: alphabet) else { return nil }
+    
+    if data.count == 64 {
+      data = Data(data.prefix(32))
+    } else {
+      guard data.count == 32 else { return nil }
+    }
+    
+    self.raw = data
     self.chainCode = Data()
     self.depth = 0
     self.fingerprint = Data([0x00, 0x00, 0x00, 0x00])
@@ -114,7 +131,7 @@ extension PrivateKey: IKey {
       data += Data([0x01])
     }
     data += data.sha256().sha256().prefix(4)
-    return data.encodeBase58(alphabet: alphabet)
+    return try? data.encodeBase58(alphabet: alphabet)
   }
   
   public func extended() -> String? {
@@ -131,11 +148,20 @@ extension PrivateKey: IKey {
     extendedKey += self.raw
     let checksum = extendedKey.sha256().sha256().prefix(4)
     extendedKey += checksum
-    return extendedKey.encodeBase58(alphabet: alphabet)
+    return try? extendedKey.encodeBase58(alphabet: alphabet)
   }
   
-  public func data() -> Data {
+  public func data() throws -> Data {
     return self.raw
+  }
+  
+  public func ed25519() throws -> Data {
+    switch self.network {
+    case .solana:
+      return try TweetNacl.signKeyPair(seed: self.raw).secretKey
+    default:
+      throw PrivateKeyError.notSupported
+    }
   }
   
   public func address() -> Address? {
@@ -171,31 +197,51 @@ extension PrivateKey: BIP32 {
     
     let digest = try Data(HMAC(key: self.chainCode.byteArray, variant: .sha2(.sha512)).authenticate(data.byteArray))
     
-    let factor = BigInt(data: Data(digest[0 ..< 32].byteArray))
-    guard let curveOrder = BigInt("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141", radix: 16) else {
-      throw PrivateKeyError.invalidData
-    }
+    let derivedPrivateKey: Self
+    switch network {
+    case .solana:
+      var derivedPrivateKeyData = Data(digest[0 ..< 32])
+      derivedPrivateKeyData.setLength(32, appendFromLeft: true)
+      derivedChainCode = Data(digest[32 ..< 64])
+      
+      let fingerprint = Data(publicKeyData.ripemd160().prefix(4))
+      derivedPrivateKey = Self(
+          privateKey: derivedPrivateKeyData,
+          chainCode: derivedChainCode,
+          depth: self.depth + 1,
+          fingerprint: fingerprint,
+          index: derivingIndex,
+          network: network
+      )
+    default:
+      let factor = BigInt(data: Data(digest[0 ..< 32].byteArray))
+      guard let curveOrder = BigInt("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141", radix: 16) else {
+        throw PrivateKeyError.invalidData
+      }
 
-    let rawKey = BigInt(data: self.raw)
-        
-    // swiftlint:disable:next identifier_name
-    let bn = rawKey + factor
-    let calculatedKey = (bn % curveOrder)
+      let rawKey = BigInt(data: self.raw)
+          
+      // swiftlint:disable:next identifier_name
+      let bn = rawKey + factor
+      let calculatedKey = (bn % curveOrder)
+      
+      var derivedPrivateKeyDataCandidate = calculatedKey.data
+      derivedPrivateKeyDataCandidate.setLength(32, appendFromLeft: true)
+      derivedPrivateKeyData = derivedPrivateKeyDataCandidate
+      derivedChainCode = Data(digest[32 ..< 64])
+      
+      let fingerprint = Data(publicKeyData.ripemd160().prefix(4))
+      derivedPrivateKey = Self(
+          privateKey: derivedPrivateKeyData,
+          chainCode: derivedChainCode,
+          depth: self.depth + 1,
+          fingerprint: fingerprint,
+          index: derivingIndex,
+          network: network
+      )
+    }
     
-    var derivedPrivateKeyDataCandidate = calculatedKey.data
-    derivedPrivateKeyDataCandidate.setLength(32, appendFromLeft: true)
-    derivedPrivateKeyData = derivedPrivateKeyDataCandidate
-    derivedChainCode = Data(digest[32 ..< 64])
     
-    let fingerprint = Data(publicKeyData.ripemd160().prefix(4))
-    let derivedPrivateKey = Self(
-        privateKey: derivedPrivateKeyData,
-        chainCode: derivedChainCode,
-        depth: self.depth + 1,
-        fingerprint: fingerprint,
-        index: derivingIndex,
-        network: network
-    )
     if nodes.count > 1 {
       return try derivedPrivateKey.derived(nodes: Array(nodes[1 ..< nodes.count]), network: network)
     }

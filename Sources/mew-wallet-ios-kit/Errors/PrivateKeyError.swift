@@ -10,4 +10,5 @@ import Foundation
 
 enum PrivateKeyError: Error {
   case invalidData
+  case notSupported
 }

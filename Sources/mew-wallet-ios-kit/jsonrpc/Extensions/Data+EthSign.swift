@@ -23,8 +23,8 @@ public extension Data {
     return hash
   }
   
-  func sign(key: PrivateKey, leadingV: Bool) -> Data? {
-    self.hashPersonalMessage()?.unsafeSign(key: key.data(), leadingV: leadingV)
+  func sign(key: PrivateKey, leadingV: Bool) throws -> Data? {
+    try self.hashPersonalMessage()?.unsafeSign(key: key.data(), leadingV: leadingV)
   }
     
   /// Recovers address from a hashed message (self) with provided signature.

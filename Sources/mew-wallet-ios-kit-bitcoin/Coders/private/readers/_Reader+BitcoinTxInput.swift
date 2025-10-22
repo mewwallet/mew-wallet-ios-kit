@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import mew_wallet_ios_kit_utils
 
 extension _Reader {
   /// A binary reader for decoding a single transaction input (`vin`) in a Bitcoin transaction.
